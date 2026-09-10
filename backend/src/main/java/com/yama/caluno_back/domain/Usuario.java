@@ -7,4 +7,7 @@ public class Usuario {
    private String senha;
 
    public Usuario(){}
+
+   private void cadastrar(){}
+   private void editarDados(){}
 }

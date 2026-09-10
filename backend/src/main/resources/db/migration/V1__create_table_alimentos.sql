@@ -1,0 +1,10 @@
+CREATE TABLE alimentos(
+  id BIGSERIAL PRIMARY KEY,
+  nome varchar(255) NOT NULL,
+  calorias DOUBLE PRECISION,
+  carboidratos DOUBLE PRECISION,
+  gorduras DOUBLE PRECISION,
+  sodio DOUBLE PRECISION,
+  fibras DOUBLE PRECISION
+
+);
