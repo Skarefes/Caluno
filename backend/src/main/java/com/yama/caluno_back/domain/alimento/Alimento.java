@@ -26,6 +26,7 @@ public class Alimento {
         this.nome = dados.nome();
         this.informacaoNutricional = new InformacaoNutricional(
                 dados.calorias(),
+                dados.proteinas(),
                 dados.carboidratos(),
                 dados.gorduras(),
                 dados.sodio(),
@@ -33,8 +34,29 @@ public class Alimento {
         );
     }
 
+    //verifica as informações recebida, e  só altera os campos se o novo valor não for null
     public void atualizarInformacaoNutricional(DadosAtualizacaoAlimento dados){
-
+        if (dados.nome() != null ){
+            this.nome = dados.nome();
+        }
+        if (dados.calorias() != null){
+            this.informacaoNutricional.setCalorias(dados.calorias());
+        }
+        if (dados.proteinas() != null){
+            this.informacaoNutricional.setProteinas(dados.proteinas());
+        }
+        if (dados.carboidratos() != null){
+            this.informacaoNutricional.setCarboidratos(dados.carboidratos());
+        }
+        if (dados.gorduras() != null){
+            this.informacaoNutricional.setGorduras(dados.gorduras());
+        }
+        if (dados.sodio() != null){
+            this.informacaoNutricional.setSodio(dados.sodio());
+        }
+        if (dados.fibras() != null){
+            this.informacaoNutricional.setFibras(dados.fibras());
+        }
     }
 
 }
