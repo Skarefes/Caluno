@@ -4,11 +4,11 @@ O **Caluno** é uma aplicação voltada para o registro e acompanhamento do cons
 
 A proposta do projeto é facilitar o acompanhamento nutricional de forma simples, permitindo que o usuário registre alimentos e suas respectivas quantidades e obtenha automaticamente informações nutricionais proporcionais ao consumo.
 
-## 🎯 Objetivo
+## Objetivo
 
 O projeto busca tornar o acompanhamento da alimentação mais simples e acessível, reduzindo a necessidade de realizar manualmente cálculos de calorias e outros nutrientes.
 
-## ⚙️ Funcionalidades
+## Funcionalidades
 
 * Cadastro e consulta de alimentos;
 * Consulta de informações nutricionais;
@@ -26,7 +26,7 @@ Entre os nutrientes trabalhados estão:
 * Fibras;
 * Sódio.
 
-## 🛠️ Tecnologias
+## Tecnologias
 
 * Java
 * Spring Boot
@@ -36,15 +36,15 @@ Entre os nutrientes trabalhados estão:
 * REST API
 * USDA FoodData Central API
 
-## 📚 Objetivo acadêmico
+## Objetivo acadêmico
 
 O Caluno também faz parte de um projeto de extensão universitária relacionado ao **ODS 3 — Saúde e Bem-Estar**, com foco no desenvolvimento de uma solução tecnológica para facilitar o acompanhamento do consumo alimentar.
 
-## 🚧 Status
+## Status
 
 O projeto está em desenvolvimento e novas funcionalidades poderão ser adicionadas conforme sua evolução.
 
-## 📌 Próximos passos
+## Próximos passos
 
 Entre as possibilidades de evolução estão:
 
