@@ -1,4 +1,4 @@
-package com.yama.caluno_back.infra.api;
+package com.yama.caluno_back.infra.api.dto;
 
 import java.util.List;
 

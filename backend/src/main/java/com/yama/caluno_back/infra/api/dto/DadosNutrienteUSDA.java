@@ -1,6 +1,4 @@
-package com.yama.caluno_back.infra.api;
-
-import java.math.BigDecimal;
+package com.yama.caluno_back.infra.api.dto;
 
 public record DadosNutrienteUSDA(
         Integer nutrientId,

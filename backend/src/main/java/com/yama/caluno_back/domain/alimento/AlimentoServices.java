@@ -1,10 +1,10 @@
 package com.yama.caluno_back.domain.alimento;
 
-import com.yama.caluno_back.domain.InformacaoNutricional;
 import com.yama.caluno_back.domain.dto.DadosAtualizacaoAlimento;
 import com.yama.caluno_back.domain.dto.DadosCadastroAlimento;
 import com.yama.caluno_back.domain.dto.DadosDetalhamentoAlimento;
 import com.yama.caluno_back.domain.repository.AlimentoRepository;
+import com.yama.caluno_back.infra.api.dto.DadosResultadoUSDA;
 import com.yama.caluno_back.infra.api.USDAService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -58,8 +58,15 @@ public class AlimentoServices {
     }
 
     //Metodo que vai buscar um alimento no banco de dados da API, mais detalhadamente pelo nome do alimento
-    public List<InformacaoNutricional> buscarAlimentoUSDA(String nome){
+    public List<DadosResultadoUSDA> buscarAlimentoUSDA(String nome){
         return usdaService.buscarPorNome(nome);
+    }
+
+    //Metodo que vai pegar o fdcId escolhido e salvar no banco de dados para o usuario
+    @Transactional
+    public Alimento salvarAlimentoFDCID(DadosResultadoUSDA dados){
+        Alimento alimento = new Alimento(dados);
+        return  alimentoRepository.save(alimento);
     }
 
 }

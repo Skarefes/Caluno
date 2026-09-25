@@ -1,4 +1,4 @@
-package com.yama.caluno_back.domain;
+package com.yama.caluno_back.domain.usuario;
 
 public class Usuario {
    private Long id;

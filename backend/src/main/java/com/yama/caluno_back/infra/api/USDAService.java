@@ -1,11 +1,11 @@
 package com.yama.caluno_back.infra.api;
 
 import com.yama.caluno_back.domain.InformacaoNutricional;
+import com.yama.caluno_back.infra.api.dto.*;
 import  org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,7 +37,7 @@ public class USDAService {
     }
 
     //Metodo que vai buscar o nome que quisermos no parametro alimentar, e ele vai buscar, seguindo a chave da API, nome, e os parametros de URL pedidos
-    public List<InformacaoNutricional> buscarPorNome(String nome){
+    public List<DadosResultadoUSDA> buscarPorNome(String nome){
         DadosBuscaUSDA resposta = restClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/foods/search")
@@ -65,9 +65,30 @@ public class USDAService {
         return null;
     }
 
+    //metodo que busca os detalhes de um determinado alimento pelo fdcId, facilitando ver quantidades entre outras
+    public DadosResultadoUSDA buscarDetalhes(Long fdcId){
+        return  null;
+    }
+
+    //Metodo que vai pegar as informações que eu preciso das porcoes, como o tamanho, quantidade, e transformar em uma lsita
+    private List<DadosPorcaoUSDA> porcoes(DadosAlimentoUSDA food){
+        //verifica se o foodPortion é nulo, se for ela interrompe a execução e retorna vazia, evitando erros
+        if (food.foodPortions() == null) {
+            return List.of();
+        } //Se existir retorna uma stream com as porções referentes, convertendo cada objeto em uma nova instancia
+        return food.foodPortions().stream()
+                .map(p -> new DadosPorcaoUSDA(
+                        p.amount(),
+                        p.gramWeight(),
+                        p.measureUnit() != null ? p.measureUnit().name() : null,
+                        p.modifier()
+                ))
+                .toList();
+    }
+
     //metodo que cria a request, dispara a chamada e converte em JSON do Record
-    private InformacaoNutricional extrairResumo(DadosAlimentoUSDA food) {
-        return new InformacaoNutricional(
+    private DadosResultadoUSDA extrairResumo(DadosAlimentoUSDA food) {
+        InformacaoNutricional informacao = new InformacaoNutricional(
                 buscarValor(food, CALORIAS),
                 buscarValor(food, PROTEINA),
                 buscarValor(food, CARBOIDRATO),
@@ -75,6 +96,15 @@ public class USDAService {
                 buscarValor(food, SODIO),
                 buscarValor(food, FIBRA)
         );
+        //Agora irá pegar e retornar o ID e o nome que viera da USDA, alem das informações nutricionais padrão
+        return new DadosResultadoUSDA(
+                food.fdcId(),
+                food.description(),
+                food.dataType(),
+                informacao,
+                porcoes(food)
+        );
+        //Assim o objetoInformaçãoNutricional fica dentro dos DadosResultadoUSDA, trazendo um JSON mais organizado
     }
 
     //Metodo que faz o filtro detro da lista de nutrientes de um determinado alimento
