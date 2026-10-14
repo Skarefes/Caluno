@@ -1,6 +1,7 @@
 package com.yama.caluno_back.domain.alimento;
 
 import com.yama.caluno_back.domain.InformacaoNutricional;
+import com.yama.caluno_back.domain.porcao.PorcaoAlimento;
 import com.yama.caluno_back.domain.registro_consumo.RegistroConsumo;
 import com.yama.caluno_back.domain.dto.DadosAtualizacaoAlimento;
 import com.yama.caluno_back.domain.dto.DadosCadastroAlimento;
@@ -11,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -28,7 +30,15 @@ public class Alimento {
     private InformacaoNutricional informacaoNutricional;
     @OneToMany(mappedBy = "alimento")
     private List<RegistroConsumo> registroConsumos;
+    //mappedBy = usda o nome do CAMPO na classe PorcaoAlimentos que aponta para a classe Alimento
+    @OneToMany(mappedBy = "alimento", cascade = CascadeType.ALL)
+    private List<PorcaoAlimento> porcoes = new ArrayList<>();
 
+    //metodo que traz sincronia em relação ao alimento, evita esquecer de preencher o alimento dentro da porcao.
+    public void adicionarPorcao(PorcaoAlimento porcao){
+        porcoes.add(porcao);
+        porcao.setAlimento(this);
+    }
 
     public Alimento(DadosCadastroAlimento dados) {
         this.nome = dados.nome();

@@ -1,6 +1,7 @@
 package com.yama.caluno_back.infra.api;
 
 import com.yama.caluno_back.domain.InformacaoNutricional;
+import com.yama.caluno_back.domain.porcao.DadosPorcaoUSDA;
 import com.yama.caluno_back.infra.api.dto.*;
 import  org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -105,6 +106,10 @@ public class USDAService {
                 porcoes(food)
         );
         //Assim o objetoInformaçãoNutricional fica dentro dos DadosResultadoUSDA, trazendo um JSON mais organizado
+    }
+
+    public DadosResultadoUSDA buscarDetalhesPorId(Long fdcId){
+        return null;
     }
 
     //Metodo que faz o filtro detro da lista de nutrientes de um determinado alimento

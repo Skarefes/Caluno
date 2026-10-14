@@ -1,4 +1,4 @@
-package com.yama.caluno_back.infra.api.dto;
+package com.yama.caluno_back.domain.porcao;
 
 public record DadosPorcaoUSDA(
         //Para saber
@@ -7,6 +7,6 @@ public record DadosPorcaoUSDA(
         //unidade mostra se e pedaço ou grama
         String unidadeTipo,
         //Aqui entraria dados extras,como o tamanho ou tipo da medida, porem atualmente será opcional
-        String modifier
+        String descricao
 ) {
 }
