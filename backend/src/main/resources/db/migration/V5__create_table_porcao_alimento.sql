@@ -3,7 +3,7 @@ create table porcao_alimento(
     alimento_id bigint not null,
     quantidade double precision,
     peso_grama double precision,
-    unidada_tipo varchar(100),
+    unidade_tipo varchar(100),
     descricao varchar(200),
 
     constraint fl_porcao_alimento_alimento

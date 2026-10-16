@@ -4,8 +4,10 @@ import com.yama.caluno_back.domain.alimento.Alimento;
 import com.yama.caluno_back.domain.dto.DadosCadastroAlimento;
 import com.yama.caluno_back.domain.dto.DadosDetalhamentoAlimento;
 import com.yama.caluno_back.domain.alimento.AlimentoServices;
+import com.yama.caluno_back.infra.api.USDAService;
 import com.yama.caluno_back.infra.api.dto.DadosResultadoUSDA;
 import jakarta.validation.Valid;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +20,12 @@ import java.util.List;
 @RequestMapping("/alimentos")
 public class AlimentoController {
     private final AlimentoServices alimentoServices;
+    private final USDAService usdaService;
 
 
-    public AlimentoController(AlimentoServices alimentoServices) {
+    public AlimentoController(AlimentoServices alimentoServices, USDAService usdaService) {
         this.alimentoServices = alimentoServices;
+        this.usdaService = usdaService;
     }
 
     @PostMapping("/registrar")
@@ -48,6 +52,11 @@ public class AlimentoController {
     public ResponseEntity<DadosDetalhamentoAlimento> salvarAlimentoUSDA(@RequestBody DadosResultadoUSDA dados){
         Alimento alimento = alimentoServices.salvarAlimentoFDCID(dados);
         return ResponseEntity.created(URI.create("/alimentos/" + alimento.getId())).body(new DadosDetalhamentoAlimento(alimento));
+    }
+
+    @GetMapping("/usda/{fdcId}")
+    public DadosResultadoUSDA buscarAlimentoPorFdcId(@PathVariable Long fdcId){
+        return usdaService.buscarDetalhesPorId(fdcId);
     }
 
 }

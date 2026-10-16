@@ -16,7 +16,7 @@ import lombok.Setter;
 public class PorcaoAlimento {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "alimento_id", nullable = false)
     private Alimento alimento;

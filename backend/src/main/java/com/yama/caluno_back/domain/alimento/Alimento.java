@@ -1,6 +1,7 @@
 package com.yama.caluno_back.domain.alimento;
 
 import com.yama.caluno_back.domain.InformacaoNutricional;
+import com.yama.caluno_back.domain.porcao.DadosPorcaoUSDA;
 import com.yama.caluno_back.domain.porcao.PorcaoAlimento;
 import com.yama.caluno_back.domain.registro_consumo.RegistroConsumo;
 import com.yama.caluno_back.domain.dto.DadosAtualizacaoAlimento;
@@ -66,6 +67,16 @@ public class Alimento {
                 dados.informacaoNutricional().getSodio(),
                 dados.informacaoNutricional().getFibras()
         );
+        if (dados.porcoes() != null) {
+            for (DadosPorcaoUSDA p : dados.porcoes()) {
+                PorcaoAlimento porcao = new PorcaoAlimento();
+                porcao.setQuantidade(p.quantidade());
+                porcao.setPesoGrama(p.pesoGrama());
+                porcao.setUnidadeTipo(p.unidadeTipo());
+                porcao.setDescricao(p.descricao());
+                adicionarPorcao(porcao); //Adicionei na lista, ja que o JSON nessa parte porção ficava null
+            }
+        }
     }
 
     //verifica as informações recebida, e  só altera os campos se o novo valor não for null

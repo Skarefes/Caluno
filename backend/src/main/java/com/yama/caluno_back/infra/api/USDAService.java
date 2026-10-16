@@ -3,6 +3,7 @@ package com.yama.caluno_back.infra.api;
 import com.yama.caluno_back.domain.InformacaoNutricional;
 import com.yama.caluno_back.domain.porcao.DadosPorcaoUSDA;
 import com.yama.caluno_back.infra.api.dto.*;
+import com.yama.caluno_back.infra.api.dto.detalhesdto.DadosAlimentoDetalheUSDA;
 import  org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -66,11 +67,6 @@ public class USDAService {
         return null;
     }
 
-    //metodo que busca os detalhes de um determinado alimento pelo fdcId, facilitando ver quantidades entre outras
-    public DadosResultadoUSDA buscarDetalhes(Long fdcId){
-        return  null;
-    }
-
     //Metodo que vai pegar as informações que eu preciso das porcoes, como o tamanho, quantidade, e transformar em uma lsita
     private List<DadosPorcaoUSDA> porcoes(DadosAlimentoUSDA food){
         //verifica se o foodPortion é nulo, se for ela interrompe a execução e retorna vazia, evitando erros
@@ -108,8 +104,29 @@ public class USDAService {
         //Assim o objetoInformaçãoNutricional fica dentro dos DadosResultadoUSDA, trazendo um JSON mais organizado
     }
 
+    //metodo que busca os detalhes de um determinado alimento pelo fdcId, facilitando ver quantidades entre outras
     public DadosResultadoUSDA buscarDetalhesPorId(Long fdcId){
-        return null;
+        //define o endpoint que recebe o identificador do alimento em detalhes
+        DadosAlimentoDetalheUSDA food = restClient.get().uri(uriBuilder -> uriBuilder
+                        .path("/food/{fdcId}")
+                //adiciona a chave de requisição
+                .queryParam("api_key", apiKey).build(fdcId))
+                //executa a requisição e prepara o processamento da resposta e o body converte o JSON em um objeto java
+                .retrieve().body(DadosAlimentoDetalheUSDA.class);
+
+        //Agora preciso converter os dados detalhados e extrair o que o metodo ja conhece
+        DadosAlimentoUSDA alimento = new DadosAlimentoUSDA(
+                food.fdcId(), food.description(), food.dataType(), food.foodNutrients()
+                .stream().filter(n -> n.nutrient() != null)
+                .map(n -> new DadosNutrienteUSDA(
+                        n.nutrient().id(), n.nutrient().name(),
+                        n.nutrient().number(),
+                        n.nutrient().unitName(),
+                        n.amount(), null, null
+                )).toList(), food.foodPortions()
+        );
+
+        return extrairResumo(alimento); //reutiliza oque ja tem, e extrair os nutrinetes e porções
     }
 
     //Metodo que faz o filtro detro da lista de nutrientes de um determinado alimento
