@@ -47,7 +47,9 @@ public class USDAService {
                         .queryParam("query", nome)
                         .queryParam("pageSize", 10)
                         //A foundation, é uma parte para ele encontrar itens sem ter marcas
-                        .queryParam("dataType", "Foundation")
+                        //SR legacym é uma base historica de nutrição com alimentos comuns, porem a ultima versão foi atualizada em 2018
+                        //Survey é um
+                        .queryParam("dataType", "Foundation", "SR Legacy", "Survey (FNDDS)")
                         .build()).retrieve().body(DadosBuscaUSDA.class);
         return resposta.foods().stream().map(this::extrairResumo).toList();
     }

@@ -25,6 +25,7 @@ import java.util.List;
 public class Alimento {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "fdc_id", unique = true)
     private Long fdcId;
     private String nome;
     @Embedded

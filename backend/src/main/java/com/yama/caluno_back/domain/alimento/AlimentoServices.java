@@ -63,10 +63,11 @@ public class AlimentoServices {
     }
 
     //Metodo que vai pegar o fdcId escolhido e salvar no banco de dados para o usuario
+    //Se ja existe, devolve oque esta salvo, caso não ele cria um novo
     @Transactional
     public Alimento salvarAlimentoFDCID(DadosResultadoUSDA dados){
-        Alimento alimento = new Alimento(dados);
-        return  alimentoRepository.save(alimento);
+        return alimentoRepository.findByFdcId(dados.fdcId())
+                .orElseGet(() -> alimentoRepository.save(new Alimento(dados)));
     }
 
 }

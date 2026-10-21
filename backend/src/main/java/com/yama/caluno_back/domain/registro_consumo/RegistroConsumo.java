@@ -1,5 +1,6 @@
 package com.yama.caluno_back.domain.registro_consumo;
 
+import com.yama.caluno_back.domain.InformacaoNutricional;
 import com.yama.caluno_back.domain.alimento.Alimento;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -19,18 +20,22 @@ public class RegistroConsumo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "alimento_id", nullable = false)
     private Alimento alimento;
     private Double quantidade;
     private String unidadeTipo;
     private Double pesoGrama;
     private LocalDateTime data;
+    @Embedded
+    private InformacaoNutricional informacaoNutricional;
 
-    public RegistroConsumo(Alimento alimento, Double quantidade, String unidadeTipo, Double pesoGrama, LocalDateTime data) {
+    public RegistroConsumo(Alimento alimento, Double quantidade, String unidadeTipo, Double pesoGrama, InformacaoNutricional informacaoNutricional, LocalDateTime data) {
         this.alimento = alimento;
         this.quantidade = quantidade;
         this.unidadeTipo = unidadeTipo;
-        this.pesoGrama = pesoGrama; //Alguns locais eu coloquei pesoGrama e outros pesoEmGrama, preciso arrumar.
+        this.pesoGrama = pesoGrama;
+        this.informacaoNutricional = informacaoNutricional;
         this.data = data;
 
     }

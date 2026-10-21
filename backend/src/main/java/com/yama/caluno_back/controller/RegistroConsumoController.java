@@ -20,8 +20,7 @@ public class RegistroConsumoController {
     }
 
     @PostMapping("/registrar")
-    public ResponseEntity<DadosDetalhamentoConsumo>registrarConsumo(@RequestBody DadosRegistroConsumo dadosRegistroConsumo)
-    {
+    public ResponseEntity<DadosDetalhamentoConsumo>registrarConsumo(@RequestBody DadosRegistroConsumo dadosRegistroConsumo) throws IllegalAccessException {
         var resultado = registroConsumoService.registrarConsumo(dadosRegistroConsumo);
         return ResponseEntity.created(URI.create("/consumos/" + resultado.id())).body(resultado);
     }
@@ -33,7 +32,7 @@ public class RegistroConsumoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DadosDetalhamentoConsumo>buscarConsumoId(@PathVariable Long id){
+    public ResponseEntity<DadosDetalhamentoConsumo>buscarConsumoId(@PathVariable Long id) throws IllegalAccessException {
         return ResponseEntity.ok().body(registroConsumoService.buscarConsumoId(id));
     }
 
