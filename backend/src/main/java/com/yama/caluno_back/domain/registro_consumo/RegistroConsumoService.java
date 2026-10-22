@@ -6,6 +6,8 @@ import com.yama.caluno_back.domain.dto.DadosDetalhamentoConsumo;
 import com.yama.caluno_back.domain.dto.DadosRegistroConsumo;
 import com.yama.caluno_back.domain.porcao.PorcaoAlimento;
 import com.yama.caluno_back.domain.repository.AlimentoRepository;
+import com.yama.caluno_back.domain.usuario.Usuario;
+import com.yama.caluno_back.domain.usuario.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
@@ -24,10 +26,12 @@ public class RegistroConsumoService {
 
     private final AlimentoRepository alimentoRepository;
     private final RegistroConsumoRepository registroConsumoRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    public RegistroConsumoService(AlimentoRepository alimentoRepository, RegistroConsumoRepository registroConsumoRepository) {
+    public RegistroConsumoService(AlimentoRepository alimentoRepository, RegistroConsumoRepository registroConsumoRepository, UsuarioRepository usuarioRepository) {
         this.alimentoRepository = alimentoRepository;
         this.registroConsumoRepository = registroConsumoRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
 
@@ -96,9 +100,12 @@ public class RegistroConsumoService {
 
     //Metodo que vai registrar o consumo e salvar no repo, junto com as quantidades e o alimento desejado
     @Transactional
-    public DadosDetalhamentoConsumo registrarConsumo(DadosRegistroConsumo dadosRegistroConsumo) throws IllegalAccessException {
+    public DadosDetalhamentoConsumo registrarConsumo(DadosRegistroConsumo dadosRegistroConsumo, String nomeUsuario) {
+
         Alimento alimento = alimentoRepository.findById(dadosRegistroConsumo.alimentoId())
                 .orElseThrow(() -> new EntityNotFoundException("Alimento não encontrado: " + dadosRegistroConsumo.alimentoId()));
+        Usuario usuario = usuarioRepository.findByNome(nomeUsuario)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario não encontrado:" +  nomeUsuario));
 
         Double pesoGrama;
         String unidadeTipo;
@@ -124,18 +131,19 @@ public class RegistroConsumoService {
                 unidadeTipo,
                 pesoGrama,
                 calculado, //Aqui aonde entraria os nutrientes
-                LocalDateTime.now()
+                LocalDateTime.now(),
+                usuario
         );
         registroConsumoRepository.save(registro);
 
         return new DadosDetalhamentoConsumo(registro, calculado);
     }
 
-    //metodo que vai listar todos os dados registrados com os calculos
+    //metodo que vai listar todos os dados registrados com os calculos do usuario
     @Transactional(readOnly = true)
-    public List<DadosDetalhamentoConsumo>listarConsumoGeral(){
+    public List<DadosDetalhamentoConsumo>listarConsumoGeral(String nomeUsuario) {
         //Como criei um tratador de errros, nao preciso por um try catch aqui
-        return registroConsumoRepository.findAll().stream()
+        return registroConsumoRepository.findByUsuarioNome(nomeUsuario).stream()
                 .map(registro -> new DadosDetalhamentoConsumo(
                         registro,
                         registro.getInformacaoNutricional() != null ? registro.getInformacaoNutricional()
@@ -146,10 +154,10 @@ public class RegistroConsumoService {
                 .collect(Collectors.toList());
     }
 
-    //metodo que vai buscar um alimento por Id, e mostrar o calculo
+    //metodo que vai buscar um alimento por Id, e mostrar o calculo do usuario
     @Transactional(readOnly = true)
-    public DadosDetalhamentoConsumo buscarConsumoId(Long id) throws IllegalAccessException {
-        var registro = registroConsumoRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Registro não encontrado"));
+    public DadosDetalhamentoConsumo buscarConsumoId(Long id, String nomeUsuario) throws IllegalAccessException {
+        var registro = registroConsumoRepository.findByIdAndUsuarioNome(id, nomeUsuario).orElseThrow(() -> new EntityNotFoundException("Registro não encontrado"));
         //InformacaoNutricional calculado = calcularConsumo(registro.getAlimento(), registro.getPesoGrama());
         //return new DadosDetalhamentoConsumo(registro, calculado);
         InformacaoNutricional calculado =
@@ -165,8 +173,11 @@ public class RegistroConsumoService {
 
     }
 
-    //metodo que vai deletar um consumo
-    public void removerConsumo(Long id){
-        registroConsumoRepository.deleteById(id);
+    //metodo que vai deletar um consumo do usuario
+    public void removerConsumo(Long id, String nomeUsuario) throws IllegalAccessException {
+        var registro = registroConsumoRepository.findByIdAndUsuarioNome(id , nomeUsuario)
+                        .orElseThrow(() -> new EntityNotFoundException("Registro não encontrado"));
+
+        registroConsumoRepository.delete(registro);
     }
 }

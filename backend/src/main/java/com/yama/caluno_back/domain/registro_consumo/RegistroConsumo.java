@@ -2,6 +2,7 @@ package com.yama.caluno_back.domain.registro_consumo;
 
 import com.yama.caluno_back.domain.InformacaoNutricional;
 import com.yama.caluno_back.domain.alimento.Alimento;
+import com.yama.caluno_back.domain.usuario.Usuario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,14 +30,21 @@ public class RegistroConsumo {
     private LocalDateTime data;
     @Embedded
     private InformacaoNutricional informacaoNutricional;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id", nullable = false) // o usuario nao pode ter id nullo
+    private Usuario usuario;
 
-    public RegistroConsumo(Alimento alimento, Double quantidade, String unidadeTipo, Double pesoGrama, InformacaoNutricional informacaoNutricional, LocalDateTime data) {
+    public RegistroConsumo(Alimento alimento, Double quantidade,
+                           String unidadeTipo, Double pesoGrama,
+                           InformacaoNutricional informacaoNutricional,
+                           LocalDateTime data, Usuario usuario) {
         this.alimento = alimento;
         this.quantidade = quantidade;
         this.unidadeTipo = unidadeTipo;
         this.pesoGrama = pesoGrama;
         this.informacaoNutricional = informacaoNutricional;
         this.data = data;
+        this.usuario = usuario;
 
     }
 }
