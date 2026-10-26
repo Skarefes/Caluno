@@ -1,6 +1,6 @@
 package com.yama.caluno_back.domain.registro_consumo;
 
-import com.yama.caluno_back.domain.InformacaoNutricional;
+import com.yama.caluno_back.domain.nutricao.InformacaoNutricional;
 import com.yama.caluno_back.domain.alimento.Alimento;
 import com.yama.caluno_back.domain.usuario.Usuario;
 import jakarta.persistence.*;

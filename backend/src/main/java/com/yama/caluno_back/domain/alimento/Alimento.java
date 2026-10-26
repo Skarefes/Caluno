@@ -1,6 +1,6 @@
 package com.yama.caluno_back.domain.alimento;
 
-import com.yama.caluno_back.domain.InformacaoNutricional;
+import com.yama.caluno_back.domain.nutricao.InformacaoNutricional;
 import com.yama.caluno_back.domain.porcao.DadosPorcaoUSDA;
 import com.yama.caluno_back.domain.porcao.PorcaoAlimento;
 import com.yama.caluno_back.domain.registro_consumo.RegistroConsumo;

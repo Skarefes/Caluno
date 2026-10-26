@@ -1,6 +1,7 @@
 package com.yama.caluno_back.domain.registro_consumo;
 
-import com.yama.caluno_back.domain.InformacaoNutricional;
+import com.yama.caluno_back.domain.nutricao.DadosResumoNutricional;
+import com.yama.caluno_back.domain.nutricao.InformacaoNutricional;
 import com.yama.caluno_back.domain.alimento.Alimento;
 import com.yama.caluno_back.domain.dto.DadosDetalhamentoConsumo;
 import com.yama.caluno_back.domain.dto.DadosRegistroConsumo;
@@ -9,9 +10,11 @@ import com.yama.caluno_back.domain.repository.AlimentoRepository;
 import com.yama.caluno_back.domain.usuario.Usuario;
 import com.yama.caluno_back.domain.usuario.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.hibernate.annotations.TypeRegistration;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -179,5 +182,50 @@ public class RegistroConsumoService {
                         .orElseThrow(() -> new EntityNotFoundException("Registro não encontrado"));
 
         registroConsumoRepository.delete(registro);
+    }
+
+    @Transactional(readOnly = true)
+    public DadosResumoNutricional resumoDoDia(String nomeUsuario, LocalDate dia) throws IllegalAccessException {
+        //Pega o dia informado des do inicio do dia
+        LocalDateTime inicio = dia.atStartOfDay();
+        //Pega o dia seguinte ao informado e define o horario para 00:00:00, garantindo que o dia escolhido nao ultrapasse o outro dia
+        LocalDateTime fim = dia.plusDays(1).atStartOfDay();
+
+        //Busco  a lista de registros filtrando por usuario, inicio e fim do dia
+        List<RegistroConsumo> registros = registroConsumoRepository.findByUsuarioNomeAndDataGreaterThanEqualAndDataLessThan(nomeUsuario,inicio,fim);
+
+        //Zero as variaveis de nutrientes
+        double calorias = 0;
+        double proteinas = 0;
+        double carboidratos = 0;
+        double gorduras = 0;
+        double sodio = 0;
+        double fibras = 0;
+
+        //Tenta ler os registos ja registrados e soma os valores de cada nutriente do dia
+        for (RegistroConsumo registro : registros) {
+            InformacaoNutricional info = registro.getInformacaoNutricional();
+
+            //Ajuda na compatibildiadde com registros que não tinham registros salvos
+            if (info == null) {
+                info = calcularConsumo(registro.getAlimento(), registro.getPesoGrama());
+
+            }
+
+            calorias += valorOuZero(info.getCalorias());
+            proteinas += valorOuZero(info.getProteinas());
+            carboidratos += valorOuZero(info.getCarboidratos());
+            gorduras += valorOuZero(info.getGorduras());
+            sodio += valorOuZero(info.getSodio());
+            fibras += valorOuZero(info.getFibras());
+        }
+
+        return new DadosResumoNutricional(
+                dia, calorias, proteinas,  carboidratos, gorduras, sodio, fibras
+        );
+    }
+    //Metodo auxiliar que converte um valor null para 0, permitindo somas
+    private double valorOuZero(Double valor){
+        return valor != null ? valor : 0.0;
     }
 }

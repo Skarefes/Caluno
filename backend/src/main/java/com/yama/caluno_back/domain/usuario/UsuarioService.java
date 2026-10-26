@@ -1,7 +1,9 @@
 package com.yama.caluno_back.domain.usuario;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UsuarioService {
@@ -18,7 +20,6 @@ public class UsuarioService {
     public void cadastrar(DadosCadastroUsuario dadosUsuario) throws IllegalAccessException {
         if (usuarioRepository.existsByNome(dadosUsuario.nome())){
             throw new IllegalAccessException("Nome do usuario ja existem, por gentileza cadastre outro");
-
         }
         //Caso o nome não exista, ele cria um novo usuario
         Usuario usuario = new Usuario(dadosUsuario);
@@ -26,5 +27,11 @@ public class UsuarioService {
         usuario.setSenha(passwordEncoder.encode(dadosUsuario.senha()));
         //Por fim salva o usuario
         usuarioRepository.save(usuario);
+    }
+
+    @Transactional
+    public void excluir(String nome){
+        Usuario usuario = usuarioRepository.findByNome(nome).orElseThrow(() -> new EntityNotFoundException("Usuario não encontrado"));
+        usuarioRepository.delete(usuario);
     }
 }

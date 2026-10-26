@@ -2,13 +2,16 @@ package com.yama.caluno_back.controller;
 
 import com.yama.caluno_back.domain.dto.DadosDetalhamentoConsumo;
 import com.yama.caluno_back.domain.dto.DadosRegistroConsumo;
+import com.yama.caluno_back.domain.nutricao.DadosResumoNutricional;
 import com.yama.caluno_back.domain.registro_consumo.RegistroConsumoService;
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -43,5 +46,12 @@ public class RegistroConsumoController {
     public ResponseEntity<Void> apagarConsumoId(@PathVariable Long id,  Authentication authentication) throws IllegalAccessException {
         registroConsumoService.removerConsumo(id,  authentication.getName());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/resumo-diario")
+    public DadosResumoNutricional resumoDiario(Authentication authentication, @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) throws IllegalAccessException {
+        LocalDate dia = data != null ? data : LocalDate.now();
+
+        return registroConsumoService.resumoDoDia(authentication.getName(), dia);
     }
 }

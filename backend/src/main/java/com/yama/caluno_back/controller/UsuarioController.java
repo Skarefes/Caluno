@@ -5,10 +5,8 @@ import com.yama.caluno_back.domain.usuario.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -24,5 +22,11 @@ public class UsuarioController {
         usuarioService.cadastrar(dadosCadastroUsuario);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deletarUsuario(Authentication authentication) {
+        usuarioService.excluir(authentication.getName());
+        return ResponseEntity.noContent().build();
     }
 }

@@ -48,9 +48,9 @@ public class AlimentoController {
 
     //Salvo qual alimento quero pelo FDCID, ele salva e quando salva manda qual alimento no corpo do JSON para analisar
     //Usa-se os DadosDetalhamentoAlimento para que a entidadeAlimento no seja diretament exposta
-    @PostMapping("/salvar")
-    public ResponseEntity<DadosDetalhamentoAlimento> salvarAlimentoUSDA(@RequestBody DadosResultadoUSDA dados){
-        Alimento alimento = alimentoServices.salvarAlimentoFDCID(dados);
+    @PostMapping("/salvar/{fdcId}")
+    public ResponseEntity<DadosDetalhamentoAlimento> salvarAlimentoUSDA(@PathVariable Long fdcId){
+        Alimento alimento = alimentoServices.salvarAlimentoFDCID(fdcId);
         return ResponseEntity.created(URI.create("/alimentos/" + alimento.getId())).body(new DadosDetalhamentoAlimento(alimento));
     }
 

@@ -1,12 +1,10 @@
-package com.yama.caluno_back.domain;
+package com.yama.caluno_back.domain.nutricao;
 
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.math.BigDecimal;
 
 @Embeddable
 @Getter

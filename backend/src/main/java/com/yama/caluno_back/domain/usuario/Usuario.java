@@ -24,7 +24,7 @@ public class Usuario {
    private String nome;
    @Column(nullable = false)
    private String senha;
-   @OneToMany(mappedBy = "usuario")
+   @OneToMany(mappedBy = "usuario", cascade = CascadeType.REMOVE)
    private List<RegistroConsumo> registroConsumos = new ArrayList<>();
 
    public Usuario(DadosCadastroUsuario dadosCadastroUsuario) {

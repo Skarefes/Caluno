@@ -1,6 +1,6 @@
 package com.yama.caluno_back.infra.api.dto;
 
-import com.yama.caluno_back.domain.InformacaoNutricional;
+import com.yama.caluno_back.domain.nutricao.InformacaoNutricional;
 import com.yama.caluno_back.domain.porcao.DadosPorcaoUSDA;
 
 import java.util.List;
