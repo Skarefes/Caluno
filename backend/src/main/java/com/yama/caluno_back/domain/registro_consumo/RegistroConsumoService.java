@@ -6,11 +6,10 @@ import com.yama.caluno_back.domain.alimento.Alimento;
 import com.yama.caluno_back.domain.dto.DadosDetalhamentoConsumo;
 import com.yama.caluno_back.domain.dto.DadosRegistroConsumo;
 import com.yama.caluno_back.domain.porcao.PorcaoAlimento;
-import com.yama.caluno_back.domain.repository.AlimentoRepository;
+import com.yama.caluno_back.domain.alimento.AlimentoRepository;
 import com.yama.caluno_back.domain.usuario.Usuario;
 import com.yama.caluno_back.domain.usuario.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.hibernate.annotations.TypeRegistration;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 

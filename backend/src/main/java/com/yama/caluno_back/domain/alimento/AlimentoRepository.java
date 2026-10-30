@@ -1,8 +1,6 @@
-package com.yama.caluno_back.domain.repository;
+package com.yama.caluno_back.domain.alimento;
 
-import com.yama.caluno_back.domain.alimento.Alimento;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.http.ResponseEntity;
 
 import java.util.Optional;
 

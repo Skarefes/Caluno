@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -43,14 +44,14 @@ public class USDAService {
         DadosBuscaUSDA resposta = restClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/foods/search")
-                        .queryParam("api_key", apiKey)
-                        .queryParam("query", nome)
+                        .queryParam("api_key", "{key}")
+                        .queryParam("query", "{q}")
                         .queryParam("pageSize", 10)
                         //A foundation, é uma parte para ele encontrar itens sem ter marcas
                         //SR legacym é uma base historica de nutrição com alimentos comuns, porem a ultima versão foi atualizada em 2018
                         //Survey é um
                         .queryParam("dataType", "Foundation", "SR Legacy", "Survey (FNDDS)")
-                        .build()).retrieve().body(DadosBuscaUSDA.class);
+                        .build(Map.of("key", apiKey, "q", nome))).retrieve().body(DadosBuscaUSDA.class);
         return resposta.foods().stream().map(this::extrairResumo).toList();
     }
 
