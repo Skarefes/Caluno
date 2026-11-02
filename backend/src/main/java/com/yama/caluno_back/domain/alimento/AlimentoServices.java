@@ -20,6 +20,10 @@ public class AlimentoServices {
     private final USDAService usdaService;
     private final TraducaoService traducaoService;
 
+    //Padronizando ja que é um erro humano escrever errado muitas vezes
+    public static final String PT_BR = "pt-BR";
+    public static final String EN = "en";
+
     public AlimentoServices(AlimentoRepository alimentoRepository, USDAService usdaService, TraducaoService traducaoService) {
         this.alimentoRepository = alimentoRepository;
         this.usdaService = usdaService;
@@ -41,8 +45,12 @@ public class AlimentoServices {
         return new DadosDetalhamentoAlimento(alimento);
     }
 
-    public void obterInformacoes(){
+    //Busca o alimento com detalhes, porem com a tradução do alimento
+    public DadosResultadoUSDA buscarAlimentoDetalheUSDA(Long fdcId){
+        DadosResultadoUSDA r = usdaService.buscarDetalhesPorId(fdcId);
 
+        return new DadosResultadoUSDA(r.fdcId(), traducaoService.traduzir(r.nome(), EN, PT_BR),
+                r.dataType(), r.informacaoNutricional(), r.porcoes());
     }
 
     //Metodo que altera alguma informação do alimento
@@ -63,20 +71,22 @@ public class AlimentoServices {
 
     //Metodo que vai buscar um alimento no banco de dados da API, mais detalhadamente pelo nome do alimento
     public List<DadosResultadoUSDA> buscarAlimentoUSDA(String nome){
-        // primeiro é PT -> EN; traduz o que o usuario digitou para consultar a USDA
-        String termoIngles = traducaoService.traduzir(nome, "pt-BR", "en");
+        // primeiro tenta buscar direto pelo nome em ingles, para assim, não salvar no banco a palavra em ingles e virar Pt-Br
+        var resultados = usdaService.buscarPorNome(nome);
 
-        log.info("Termo enviado à USDA: [{}]", termoIngles);
-        var resultados = usdaService.buscarPorNome(termoIngles);
-        //CASO a traducao nao encontre, ou o usuario digite o nome em ingles, assim evita um possivel bug
-        if(resultados.isEmpty() && !termoIngles.equalsIgnoreCase(nome)){
-            resultados = usdaService.buscarPorNome(nome);
+        //Agora se não encontrou, irá assumir que é em portugues e vai traduzir
+        if (resultados.isEmpty()){
+            String termoIngles = traducaoService.traduzir(nome, PT_BR, EN);
+            log.info("Termo enviado a USDA: [{}]", termoIngles);
+            if (!termoIngles.equalsIgnoreCase(nome)){
+                resultados = usdaService.buscarPorNome(termoIngles);
+            }
         }
 
         //Depois retorna EN -> PT traduz os nomes da lista para o usuario ver em portugues
-        return usdaService.buscarPorNome(termoIngles).stream()
+        return resultados.stream()
                 .map(r -> new DadosResultadoUSDA(
-                        r.fdcId(), traducaoService.traduzir(r.nome(), "en", "pt-BR"),
+                        r.fdcId(), traducaoService.traduzir(r.nome(), EN, PT_BR),
                         r.dataType(), r.informacaoNutricional(), r.porcoes()
                 )).toList();
     }
@@ -89,7 +99,7 @@ public class AlimentoServices {
                 .orElseGet(() -> {
                     DadosResultadoUSDA dados = usdaService.buscarDetalhesPorId(fdcId);
                     Alimento alimento = new Alimento(dados);
-                    alimento.setNome(traducaoService.traduzir(dados.nome(), "en", "pt-BR"));
+                    alimento.setNome(traducaoService.traduzir(dados.nome(), EN, PT_BR));
                     return alimentoRepository.save(alimento);
                 });
     }

@@ -56,7 +56,8 @@ public class AlimentoController {
 
     @GetMapping("/usda/{fdcId}")
     public DadosResultadoUSDA buscarAlimentoPorFdcId(@PathVariable Long fdcId){
-        return usdaService.buscarDetalhesPorId(fdcId);
+        return alimentoServices.buscarAlimentoDetalheUSDA(fdcId);
+        //return usdaService.buscarDetalhesPorId(fdcId);
     }
 
 }
