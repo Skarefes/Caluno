@@ -51,7 +51,7 @@ public class USDAService {
                         .path("/foods/search")
                         .queryParam("api_key", "{key}")
                         .queryParam("query", "{q}")
-                        .queryParam("pageSize", 20)
+                        .queryParam("pageSize", 12)
                         //A foundation, é uma parte para ele encontrar itens sem ter marcas
                         //SR legacym é uma base historica de nutrição com alimentos comuns, porem a ultima versão foi atualizada em 2018
                         //Survey é um outro tipo com outras listas
