@@ -24,7 +24,7 @@ public class RegistroConsumoService {
 
     // Porções que a USDA cadastra mas que NÃO representam uma unidade contável
     // (RACC = porção de referência regulatória, undetermined = sem medida definida)
-    private static final Set<String> NAO_UNIDADE = Set.of("racc", "undetermined");
+    //private static final Set<String> NAO_UNIDADE = Set.of("racc", "undetermined");
 
     private final AlimentoRepository alimentoRepository;
     private final RegistroConsumoRepository registroConsumoRepository;
@@ -87,17 +87,21 @@ public class RegistroConsumoService {
     }
 
     //Procura a porção que será usada
-    private PorcaoAlimento escolherPorcao(Alimento alimento, String tipoInformado){
-        boolean generico = tipoInformado.equalsIgnoreCase("unidade");
+    private PorcaoAlimento escolherPorcao(Alimento alimento, String descricaoEscolhida){
         return alimento.getPorcoes().stream()
+                .filter(p -> descricaoEscolhida.equalsIgnoreCase(p.getDescricao())).findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("Porção nao encontrada: " + descricaoEscolhida));
+       //Esse é um metodo antigo que nao pegava o porcoes aonde tinha o tamanho como medio grande e talz
+        // boolean generico = tipoInformado.equalsIgnoreCase("unidade");
+       // return alimento.getPorcoes().stream()
                 // descarta a pocoes sem peso e quantidade validos
-                .filter(p -> p.getPesoGrama() != null && p.getPesoGrama() > 0
-                        && p.getQuantidade() != null && p.getQuantidade() > 0)
+          //      .filter(p -> p.getPesoGrama() != null && p.getPesoGrama() > 0
+          //              && p.getQuantidade() != null && p.getQuantidade() > 0)
                 //unidade aceita qualquer porcao contavel ignorando o RACC e o que eu nao escolhi como unidade
                 //qualquer outro texto precisa bater com o nome da porcao
-                .filter(p -> generico ? p.getUnidadeTipo() != null
-                        && !NAO_UNIDADE.contains(p.getUnidadeTipo().toLowerCase()): tipoInformado.equalsIgnoreCase(p.getUnidadeTipo()))
-                .findFirst().orElseThrow(() -> new EntityNotFoundException("Nenhuma porção em unidade encontrada para este alimento: " + tipoInformado));
+           //     .filter(p -> generico ? p.getUnidadeTipo() != null
+           //             && !NAO_UNIDADE.contains(p.getUnidadeTipo().toLowerCase()): tipoInformado.equalsIgnoreCase(p.getUnidadeTipo()))
+           //     .findFirst().orElseThrow(() -> new EntityNotFoundException("Nenhuma porção em unidade encontrada para este alimento: " + tipoInformado));
     }
 
     //Metodo que vai registrar o consumo e salvar no repo, junto com as quantidades e o alimento desejado
@@ -121,8 +125,7 @@ public class RegistroConsumoService {
             //vai ter uma unidade generica para o usuario entender, ou o nome da porsao USDA ( entrando como egg, Banana)
             PorcaoAlimento porcaoAlimento = escolherPorcao(alimento, dadosRegistroConsumo.unidadeTipo());
             pesoGrama = converterParaGrama(dadosRegistroConsumo.quantidade(), porcaoAlimento);
-            unidadeTipo = dadosRegistroConsumo.unidadeTipo().equalsIgnoreCase("unidade")? "unidade": porcaoAlimento.getUnidadeTipo();
-
+            unidadeTipo = porcaoAlimento.getDescricao();
         }
         //Caso ele não envie o grama, ele joga na regra de 3
         InformacaoNutricional calculado = calcularConsumo(alimento, pesoGrama);

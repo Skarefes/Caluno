@@ -8,6 +8,7 @@ import  org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +24,10 @@ public class USDAService {
     private static final List<String> SODIO = List.of("307");
     //Existem numeros registrados diferentes de fibras no banco da USDA
     private static final List<String> FIBRA = List.of("291","293");
+
+    //Descricoes que nao sao unidades, medidas de volume e porcao regulatorios que vem do USDA e por enquanto nao tem uso
+    //Se aparecer outra que é indesejado, só colocar no NAO_UNIDADE
+    private static final List<String> NAO_UNIDADE = List.of("cup", "tbsp", "tsp", "fl oz", "nlea", "racc");
 
     //variaveis que terão as variaveis de ambiente do properties
     private final String apiUrl;
@@ -46,13 +51,16 @@ public class USDAService {
                         .path("/foods/search")
                         .queryParam("api_key", "{key}")
                         .queryParam("query", "{q}")
-                        .queryParam("pageSize", 10)
+                        .queryParam("pageSize", 20)
                         //A foundation, é uma parte para ele encontrar itens sem ter marcas
                         //SR legacym é uma base historica de nutrição com alimentos comuns, porem a ultima versão foi atualizada em 2018
-                        //Survey é um
-                        .queryParam("dataType", "Foundation", "SR Legacy", "Survey (FNDDS)")
-                        .build(Map.of("key", apiKey, "q", nome))).retrieve().body(DadosBuscaUSDA.class);
-        return resposta.foods().stream().map(this::extrairResumo).toList();
+                        //Survey é um outro tipo com outras listas
+                        .queryParam("dataType", "{tipos}")
+                        //.queryParam("dataType", "Survey (FNDDS)")
+                        .build(Map.of("key", apiKey, "q", nome, "tipos", "Foundation,SR Legacy")))
+                .retrieve().body(DadosBuscaUSDA.class);
+        //Foundation (0) vem antes do Legacy (1). o sorted do stream estabiliza, entao a ordem de relevancia da USDA se mantem dentro dos grupos
+        return resposta.foods().stream().map(this::extrairResumo).sorted(Comparator.comparingInt(r -> "Foundation".equals(r.dataType()) ? 0 : 1)).toList();
     }
 
     //Metodo que faz o filtro dentro da lista de nutrientes de um determinado alimento, e procura o alimento com a base do numero que vier primeiro
@@ -77,13 +85,26 @@ public class USDAService {
             return List.of();
         } //Se existir retorna uma stream com as porções referentes, convertendo cada objeto em uma nova instancia
         return food.foodPortions().stream()
+                //precisa  ter quantidade e peso valido para que possa calcular de forma certa
+                .filter(p -> p.amount() != null && p.amount() > 0)
+                .filter(p -> p.gramWeight() != null && p.gramWeight() > 0)
+                //aqui entraria o nome legivel
+                .filter(p -> p.modifier() != null && !p.modifier().isBlank())
+                .filter(p -> !p.modifier().trim().matches("\\d+"))
+                //por enquanto estou tirando xicara que e cup e colher e alguns outros do NAO UNIDADE
+                .filter(p -> !medidaNaoUnidade(p.modifier()))
                 .map(p -> new DadosPorcaoUSDA(
                         p.amount(),
                         p.gramWeight(),
                         p.measureUnit() != null ? p.measureUnit().name() : null,
-                        p.modifier()
+                        p.modifier().trim()
                 ))
                 .toList();
+    }
+
+    private boolean medidaNaoUnidade(String descricao){
+        String texto = descricao.toLowerCase();
+        return NAO_UNIDADE.stream().anyMatch(texto::contains);
     }
 
     //metodo que cria a request, dispara a chamada e converte em JSON do Record

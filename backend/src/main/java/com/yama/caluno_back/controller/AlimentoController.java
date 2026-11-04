@@ -4,6 +4,7 @@ import com.yama.caluno_back.domain.alimento.Alimento;
 import com.yama.caluno_back.domain.dto.DadosCadastroAlimento;
 import com.yama.caluno_back.domain.dto.DadosDetalhamentoAlimento;
 import com.yama.caluno_back.domain.alimento.AlimentoServices;
+import com.yama.caluno_back.domain.traducao.IdiomaBusca;
 import com.yama.caluno_back.infra.api.USDAService;
 import com.yama.caluno_back.infra.api.dto.DadosResultadoUSDA;
 import jakarta.validation.Valid;
@@ -40,10 +41,10 @@ public class AlimentoController {
         return ResponseEntity.ok(alimento);
     }
 
-    //Pode buscar na API o nome do alimento, porem ele ainda precisa ser pesquisado em ingles
+    //ELe vai buscar pelo nome e vai ter uma escolha de linguagem, padronizado em PT-BR
     @GetMapping("/buscar")
-    public ResponseEntity<List<DadosResultadoUSDA>> buscarAlimentoAPI(@RequestParam String nome){
-        return ResponseEntity.ok(alimentoServices.buscarAlimentoUSDA(nome));
+    public ResponseEntity<List<DadosResultadoUSDA>> buscarAlimentoAPI(@RequestParam String nome, @RequestParam(defaultValue = "PT") IdiomaBusca idiomaBusca){
+        return ResponseEntity.ok(alimentoServices.buscarAlimentoUSDA(nome, idiomaBusca));
     }
 
     //Salvo qual alimento quero pelo FDCID, ele salva e quando salva manda qual alimento no corpo do JSON para analisar
@@ -53,6 +54,7 @@ public class AlimentoController {
         Alimento alimento = alimentoServices.salvarAlimentoFDCID(fdcId);
         return ResponseEntity.created(URI.create("/alimentos/" + alimento.getId())).body(new DadosDetalhamentoAlimento(alimento));
     }
+
 
     @GetMapping("/usda/{fdcId}")
     public DadosResultadoUSDA buscarAlimentoPorFdcId(@PathVariable Long fdcId){

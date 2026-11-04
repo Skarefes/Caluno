@@ -3,6 +3,7 @@ package com.yama.caluno_back.domain.alimento;
 import com.yama.caluno_back.domain.dto.DadosAtualizacaoAlimento;
 import com.yama.caluno_back.domain.dto.DadosCadastroAlimento;
 import com.yama.caluno_back.domain.dto.DadosDetalhamentoAlimento;
+import com.yama.caluno_back.domain.traducao.IdiomaBusca;
 import com.yama.caluno_back.domain.traducao.TraducaoService;
 import com.yama.caluno_back.infra.api.dto.DadosResultadoUSDA;
 import com.yama.caluno_back.infra.api.USDAService;
@@ -70,20 +71,22 @@ public class AlimentoServices {
     }
 
     //Metodo que vai buscar um alimento no banco de dados da API, mais detalhadamente pelo nome do alimento
-    public List<DadosResultadoUSDA> buscarAlimentoUSDA(String nome){
-        // primeiro tenta buscar direto pelo nome em ingles, para assim, não salvar no banco a palavra em ingles e virar Pt-Br
-        var resultados = usdaService.buscarPorNome(nome);
-
-        //Agora se não encontrou, irá assumir que é em portugues e vai traduzir
-        if (resultados.isEmpty()){
-            String termoIngles = traducaoService.traduzir(nome, PT_BR, EN);
-            log.info("Termo enviado a USDA: [{}]", termoIngles);
-            if (!termoIngles.equalsIgnoreCase(nome)){
-                resultados = usdaService.buscarPorNome(termoIngles);
-            }
+    public List<DadosResultadoUSDA> buscarAlimentoUSDA(String nome, IdiomaBusca idiomaBusca){
+        //Modo ingles: o usuario ja escreveu em ingles, entao nao traduz nada, nem a busca nem os resultados
+        if (idiomaBusca == IdiomaBusca.EN) {
+            return usdaService.buscarPorNome(nome);
         }
 
-        //Depois retorna EN -> PT traduz os nomes da lista para o usuario ver em portugues
+        //Modo portugues: traduzindo/ o controller por padrao começa em PT-BR
+        String termoIngles = traducaoService.traduzir(nome, PT_BR, EN);
+        log.info("Termo enviado a USDA: [{}]", termoIngles);
+
+        var resultados = usdaService.buscarPorNome(termoIngles);
+
+        if (resultados.isEmpty() && !termoIngles.equalsIgnoreCase(nome)) {
+            resultados = usdaService.buscarPorNome(nome);
+        }
+
         return resultados.stream()
                 .map(r -> new DadosResultadoUSDA(
                         r.fdcId(), traducaoService.traduzir(r.nome(), EN, PT_BR),

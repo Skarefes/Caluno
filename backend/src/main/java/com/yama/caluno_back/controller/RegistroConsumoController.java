@@ -15,7 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("consumos")
+@RequestMapping("/consumos")
 public class RegistroConsumoController {
 
     private final RegistroConsumoService registroConsumoService;
