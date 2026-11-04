@@ -8,148 +8,162 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <script src="app.js" defer></script>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/app.js" defer></script>
 </head>
 <body>
-  <div class="app-shell">
-    <header class="topbar">
-      <a class="brand" href="#" aria-label="Caluno início">
-        <span class="brand-mark" aria-hidden="true">✳</span>
-        <span>caluno<span class="brand-dot">.</span></span>
+  <div class="page">
+    <header class="header">
+      <a class="logo" href="#" aria-label="Caluno início">
+        <span class="logo-icon" aria-hidden="true">✳</span>
+        <span>caluno<span class="logo-dot">.</span></span>
       </a>
-      <span class="topbar-tag">COMA COM CONSCIÊNCIA</span>
-      <button class="profile-button" type="button" id="profile-button" title="Área do usuário" disabled>
-        <span class="profile-avatar">U</span>
-        <span class="profile-label">Minha conta</span>
+      <span class="header-tag">COMA COM CONSCIÊNCIA</span>
+      <button class="account-button" type="button" id="profile-button" title="Área do usuário" disabled>
+        <span class="account-avatar">U</span>
+        <span class="account-label">Minha conta</span>
       </button>
     </header>
 
-    <main class="main-content">
-      <section class="intro">
-        <p class="eyebrow">SEU ESPAÇO DE BEM-ESTAR</p>
+    <main class="content">
+      <section class="welcome">
+        <p class="welcome-label">SEU ESPAÇO DE BEM-ESTAR</p>
         <h1>Conheça melhor o que vai no seu prato.</h1>
-        <p class="intro-text">Encontre alimentos, registre suas porções e acompanhe sua alimentação de um jeito simples.</p>
+        <p class="welcome-text">Encontre alimentos, registre suas porções e acompanhe sua alimentação de um jeito simples.</p>
       </section>
 
-      <section class="summary-grid" aria-label="Resumo nutricional do dia">
-        <article class="summary-card summary-card-primary">
-          <div class="summary-heading">
+      <section class="summary" aria-label="Resumo nutricional do dia">
+        <article class="summary-card summary-card--highlight">
+          <div class="summary-title">
             <span class="summary-icon" aria-hidden="true">◒</span>
             <span>CALORIAS CONSUMIDAS</span>
           </div>
-          <p class="summary-value"><strong id="daily-calories">—</strong><span>kcal</span></p>
-          <p class="summary-footnote" id="summary-date">Resumo de hoje</p>
+          <p class="summary-number"><strong id="daily-calories">—</strong><span>kcal</span></p>
+          <p class="summary-note" id="summary-date">Resumo de hoje</p>
         </article>
         <article class="summary-card">
-          <div class="summary-heading">
-            <span class="summary-icon summary-icon-soft" aria-hidden="true">＋</span>
+          <div class="summary-title">
+            <span class="summary-icon summary-icon--soft" aria-hidden="true">＋</span>
             <span>ALIMENTOS REGISTRADOS</span>
           </div>
-          <p class="summary-value"><strong id="food-count">0</strong><span>itens</span></p>
-          <p class="summary-footnote">No seu diário de hoje</p>
+          <p class="summary-number"><strong id="food-count">0</strong><span>itens</span></p>
+          <p class="summary-note">No seu diário de hoje</p>
         </article>
         <article class="summary-card">
-          <div class="summary-heading">
-            <span class="summary-icon summary-icon-soft" aria-hidden="true">◷</span>
+          <div class="summary-title">
+            <span class="summary-icon summary-icon--soft" aria-hidden="true">◷</span>
             <span>DATA DO REGISTRO</span>
           </div>
-          <label class="date-label" for="diary-date">Consultar outro dia</label>
-          <input id="diary-date" class="date-input" type="date">
+          <label class="date-field-label" for="diary-date">Consultar outro dia</label>
+          <input id="diary-date" class="date-field" type="date">
         </article>
       </section>
 
-      <div class="workspace">
-        <section class="panel search-panel" aria-labelledby="search-title">
-          <div class="panel-heading">
+      <div class="steps">
+        <section class="card search-card" aria-labelledby="search-title">
+          <div class="card-header">
             <div>
-              <p class="section-kicker">ETAPA 1</p>
+              <p class="card-step">ETAPA 1</p>
               <h2 id="search-title">Encontre seu alimento</h2>
-              <p class="panel-description">Pesquise pelo nome do alimento. A busca é feita no catálogo USDA.</p>
+              <p class="card-description">Pesquise pelo nome do alimento. A busca é feita no catálogo USDA.</p>
             </div>
-            <span class="panel-illustration" aria-hidden="true">⌕</span>
+            <span class="card-icon" aria-hidden="true">⌕</span>
           </div>
 
-          <label class="field-label" for="food-search">Nome do alimento</label>
-          <div class="search-control">
-            <span class="search-icon" aria-hidden="true">⌕</span>
-            <input id="food-search" class="text-field search-field" type="search" placeholder="Ex.: banana, rice, chicken..." autocomplete="off">
-            <button id="clear-search" class="clear-search" type="button" aria-label="Limpar pesquisa" hidden>×</button>
+          <div class="search-options">
+            <label class="form-label" for="search-language">Idioma da busca</label>
+            <select id="search-language" class="input">
+              <option value="PT">Português</option>
+              <option value="EN">English</option>
+            </select>
           </div>
-          <p class="field-hint">Dica: a pesquisa da API USDA funciona melhor em inglês.</p>
 
-          <div class="results-header">
+          <label class="form-label" for="food-search">Nome do alimento</label>
+          <div class="search-box">
+            <span class="search-box-icon" aria-hidden="true">⌕</span>
+            <input id="food-search" class="input search-input" type="search" placeholder="Ex.: arroz, banana, frango..." autocomplete="off">
+            <button id="clear-search" class="search-clear-button" type="button" aria-label="Limpar pesquisa" hidden>×</button>
+          </div>
+
+          <p class="form-hint" id="search-hint">
+            Quer uma busca mais precisa?
+            <button type="button" id="switch-to-english" class="link-button">Pesquisar em inglês</button>
+          </p>
+
+          <div class="results-top">
             <span id="results-title">Resultados da pesquisa</span>
             <span id="results-count" class="results-count"></span>
           </div>
-          <div id="search-state" class="state-message">
-            <span class="state-icon" aria-hidden="true">⌕</span>
+          <div id="search-state" class="status-box">
+            <span class="status-icon" aria-hidden="true">⌕</span>
             <strong>Comece pesquisando</strong>
             <span>Os alimentos encontrados aparecerão aqui.</span>
           </div>
           <div id="search-results" class="results-list" aria-live="polite"></div>
         </section>
 
-        <section class="panel portion-panel" aria-labelledby="portion-title">
-          <div class="panel-heading">
+        <section class="card portion-card" aria-labelledby="portion-title">
+          <div class="card-header">
             <div>
-              <p class="section-kicker">ETAPA 2</p>
+              <p class="card-step">ETAPA 2</p>
               <h2 id="portion-title">Monte sua porção</h2>
-              <p class="panel-description">Escolha o alimento e informe quanto você consumiu.</p>
+              <p class="card-description">Escolha o alimento e informe quanto você consumiu.</p>
             </div>
-            <span class="panel-illustration panel-illustration-warm" aria-hidden="true">◒</span>
+            <span class="card-icon card-icon--warm" aria-hidden="true">◒</span>
           </div>
 
-          <div id="no-selection" class="selection-placeholder">
-            <span class="placeholder-symbol" aria-hidden="true">＋</span>
+          <div id="no-selection" class="empty-selection">
+            <span class="empty-selection-icon" aria-hidden="true">＋</span>
             <strong>Nenhum alimento selecionado</strong>
             <span>Escolha um item nos resultados da pesquisa para continuar.</span>
           </div>
 
-          <div id="selected-food" class="selected-food" hidden>
-            <div class="selected-food-top">
+          <div id="selected-food" class="chosen-food" hidden>
+            <div class="chosen-food-header">
               <div>
-                <span class="selected-caption">ALIMENTO SELECIONADO</span>
+                <span class="chosen-food-label">ALIMENTO SELECIONADO</span>
                 <h3 id="selected-name">—</h3>
                 <p id="selected-description"></p>
               </div>
-              <button id="change-food" class="text-button" type="button">Trocar</button>
+              <button id="change-food" class="change-food-button" type="button">Trocar</button>
             </div>
 
             <form id="portion-form">
-              <label class="field-label" for="portion-quantity">Quantidade consumida</label>
-              <div class="quantity-control">
-                <input id="portion-quantity" class="text-field quantity-field" type="number" min="0.1" step="any" value="100" required>
-                <span class="quantity-unit">gramas (g)</span>
+              <label class="form-label" for="portion-quantity">Quantidade consumida</label>
+              <div class="quantity-box">
+                <input id="portion-quantity" class="input quantity-input" type="number" min="0.1" step="any" value="100" required>
+                <select id="portion-unit" class="quantity-select" aria-label="Unidade da quantidade">
+                  <option value="g">gramas (g)</option>
+                </select>
               </div>
-              <p class="field-hint">Por enquanto, a porção é informada em gramas para evitar estimativas imprecisas por unidade.</p>
+              <p class="form-hint">Quando o alimento tiver porção por unidade, você pode escolher unidades.</p>
 
-              <div class="nutrition-preview">
+              <div class="nutrition-box">
                 <div>
-                  <span class="preview-label">ESTIMATIVA DA PORÇÃO</span>
+                  <span class="nutrition-label">ESTIMATIVA DA PORÇÃO</span>
                   <strong id="portion-calories">— <small>kcal</small></strong>
                 </div>
-                <div class="preview-detail">
+                <div class="nutrition-details">
                   <span id="portion-protein">Proteínas: —</span>
                   <span id="portion-carbs">Carboidratos: —</span>
                   <span id="portion-fat">Gorduras: —</span>
                 </div>
               </div>
-              <button class="primary-button" id="add-food-button" type="submit">
+              <button class="button-primary" id="add-food-button" type="submit">
                 <span aria-hidden="true">＋</span> Adicionar ao meu diário
               </button>
             </form>
           </div>
-          <div id="portion-message" class="inline-message" role="status" aria-live="polite"></div>
+          <div id="portion-message" class="card-message" role="status" aria-live="polite"></div>
         </section>
       </div>
 
-      <section class="panel diary-panel" aria-labelledby="diary-title">
-        <div class="diary-heading">
+      <section class="card diary-card" aria-labelledby="diary-title">
+        <div class="diary-header">
           <div>
-            <p class="section-kicker">SEU ACOMPANHAMENTO</p>
+            <p class="card-step">SEU ACOMPANHAMENTO</p>
             <h2 id="diary-title">Meu diário alimentar</h2>
-            <p class="panel-description">Tudo o que você registrou na data selecionada.</p>
+            <p class="card-description">Tudo o que você registrou na data selecionada.</p>
           </div>
           <div class="diary-total">
             <span>TOTAL DO DIA</span>
@@ -157,24 +171,26 @@
           </div>
         </div>
 
-        <div id="diary-loading" class="state-message compact-state">
-          <span class="loader" aria-hidden="true"></span>
+        <p id="diary-macros" class="diary-macros"></p>
+
+        <div id="diary-loading" class="status-box status-box--small">
+          <span class="spinner" aria-hidden="true"></span>
           <span>Carregando seu diário...</span>
         </div>
-        <div id="diary-empty" class="state-message" hidden>
-          <span class="state-icon" aria-hidden="true">♡</span>
+        <div id="diary-empty" class="status-box" hidden>
+          <span class="status-icon" aria-hidden="true">♡</span>
           <strong>Seu diário ainda está vazio</strong>
           <span>Adicione um alimento para começar a acompanhar seu dia.</span>
         </div>
-        <div id="diary-error" class="error-state" hidden>
+        <div id="diary-error" class="diary-error" hidden>
           <p>Não foi possível carregar os registros.</p>
-          <button class="secondary-button" id="retry-diary" type="button">Tentar novamente</button>
+          <button class="button-secondary" id="retry-diary" type="button">Tentar novamente</button>
         </div>
         <div id="diary-list" class="diary-list"></div>
       </section>
 
-      <p id="global-message" class="global-message" role="status" aria-live="polite"></p>
-      <footer class="footer-note">Os valores nutricionais são estimativas com base nos dados disponíveis na fonte consultada.</footer>
+      <p id="global-message" class="page-message" role="status" aria-live="polite"></p>
+      <footer class="footer">Os valores nutricionais são estimativas com base nos dados disponíveis na fonte consultada.</footer>
     </main>
   </div>
 </body>

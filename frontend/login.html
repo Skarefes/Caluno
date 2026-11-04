@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Entrar | Caluno</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/autenticacao.css">
+
+    <script src="js/login.js" defer></script>
+</head>
+
+<body class="auth-page">
+
+    <main class="auth-container">
+
+        <a href="index.html" class="logo">
+            <span class="logo-icon">✦</span>
+            <span>Caluno<span class="logo-dot">.</span></span>
+        </a>
+
+        <section class="auth-card">
+
+            <p class="auth-label">BEM-VINDO DE VOLTA</p>
+
+            <h1>Entre na sua conta</h1>
+
+            <p class="auth-description">
+                Continue acompanhando sua alimentação e evolução.
+            </p>
+
+            <form id="login-form">
+
+                <div class="auth-field">
+                    <label for="nome">Nome de usuário</label>
+
+                    <input
+                        type="text"
+                        id="nome"
+                        name="nome"
+                        placeholder="Digite seu nome"
+                        autocomplete="username"
+                        required
+                    >
+                </div>
+
+                <div class="auth-field">
+                    <label for="senha">Senha</label>
+
+                    <input
+                        type="password"
+                        id="senha"
+                        name="senha"
+                        placeholder="Digite sua senha"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+
+                <p id="login-mensagem" class="auth-message"
+                   aria-live="polite"></p>
+
+                <button type="submit" class="button-primary">
+                    Entrar
+                </button>
+
+            </form>
+
+            <p class="auth-footer">
+                Ainda não possui uma conta?
+                <a href="cadastro.html">Criar conta</a>
+            </p>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,141 @@
+
+/* Fundo da página */
+
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 16px;
+    background: var(--cream);
+}
+
+/* Área principal */
+
+.auth-container {
+    width: 100%;
+    max-width: 440px;
+    text-align: center;
+}
+
+/* Logo */
+
+.auth-container > .logo {
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+/* Cartão do formulário */
+
+.auth-card {
+    padding: 35px;
+    border: 1px solid var(--line);
+    border-radius: 23px;
+    background: var(--paper);
+    box-shadow: var(--shadow);
+    text-align: left;
+}
+
+.auth-label {
+    margin-bottom: 10px;
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.auth-card h1 {
+    margin-bottom: 10px;
+    color: var(--green-900);
+    font-size: 32px;
+}
+
+.auth-description {
+    margin-bottom: 25px;
+    color: var(--ink-muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* Campos */
+
+.auth-field {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.auth-field label {
+    color: var(--green-900);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.auth-field input {
+    width: 100%;
+    min-height: 46px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    outline: none;
+    background: white;
+    color: var(--green-900);
+    font: inherit;
+    font-size: 13px;
+}
+
+.auth-field input:focus {
+    border-color: var(--green-700);
+    box-shadow: 0 0 0 3px rgba(53, 107, 82, .10);
+}
+
+/* Mensagens */
+
+.auth-message {
+    min-height: 20px;
+    margin: 5px 0 12px;
+    font-size: 12px;
+    color: var(--green-700);
+}
+
+.auth-message.error {
+    color: var(--danger);
+}
+
+/* Rodapé */
+
+.auth-footer {
+    margin: 22px 0 0;
+    color: var(--ink-muted);
+    text-align: center;
+    font-size: 12px;
+}
+
+.auth-footer a {
+    color: var(--green-800);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.auth-legal {
+    margin-top: 20px;
+    color: var(--ink-muted);
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+/* Celulares */
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 25px 20px;
+    }
+
+    .auth-card h1 {
+        font-size: 28px;
+    }
+}

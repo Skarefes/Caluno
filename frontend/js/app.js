@@ -1,0 +1,460 @@
+/* Caluno — front ligado ao back Spring Boot (versão organizada) */
+
+const API_BASE_URL = "http://localhost:8080";
+
+// Valores que o back compara em DadosRegistroConsumo.unidadeTipo
+const UNIDADE_GRAMA = "g";
+
+// Só tradução do que aparece na tela. O valor enviado ao back continua o original em inglês.
+// Apareceu uma porção nova em inglês? É só adicionar uma linha aqui.
+const TAMANHOS = {
+  "extra small": "extra pequeno",
+  "small": "pequeno",
+  "medium": "médio",
+  "large": "grande",
+  "extra large": "extra grande"
+};
+
+const ESPERA_BUSCA_MS = 800;   // tempo parado até buscar sozinho
+const MINIMO_CARACTERES = 3;   // abaixo disso não busca
+
+// PROVISÓRIO até existir a tela de login: usuário/senha de teste (HTTP Basic).
+const USUARIO_TESTE = { nome: "teste", senha: "teste123" };
+
+const $ = (id) => document.getElementById(id);
+const formatador = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
+
+// Tudo que muda durante o uso fica num só objeto: fácil de achar e de depurar.
+const estado = {
+  alimentoEscolhido: null, // DadosResultadoUSDA
+  resultadosBusca: [],
+  registros: [],           // lista de DadosDetalhamentoConsumo
+  timerBusca: null,
+  controleBusca: null      // permite cancelar a busca anterior
+};
+
+/* ---------- Utilidades ---------- */
+
+function formatar(valor) {
+  const n = Number(valor);
+  return Number.isFinite(n) ? formatador.format(n) : "—";
+}
+
+function mostrarMensagem(texto, ehErro = false, alvo = "global-message") {
+  $(alvo).textContent = texto;
+  $(alvo).classList.toggle("error", ehErro);
+}
+
+function hojeEmTexto() {
+  const d = new Date();
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mes}-${dia}`; // formato do <input type="date"> e do LocalDate
+}
+
+function mostrarStatusBusca(html) {
+  $("search-state").hidden = false;
+  $("search-state").innerHTML = html;
+}
+
+/* ---------- Comunicação com a API ---------- */
+// Uma única função faz todo fetch. Se algo mudar (token, URL), muda só aqui.
+
+function cabecalhoAutenticacao() {
+  const credencial = btoa(`${USUARIO_TESTE.nome}:${USUARIO_TESTE.senha}`);
+  return { Authorization: `Basic ${credencial}` };
+}
+
+async function chamarApi(caminho, opcoes = {}) {
+  const resposta = await fetch(`${API_BASE_URL}${caminho}`, {
+    ...opcoes,
+    headers: {
+      "Content-Type": "application/json",
+      ...cabecalhoAutenticacao(),
+      ...(opcoes.headers || {})
+    }
+  });
+
+  if (!resposta.ok) {
+    let detalhe = "";
+    try { detalhe = (await resposta.json()).message; } catch (_) {}
+    throw new Error(detalhe || `Erro HTTP ${resposta.status}`);
+  }
+  if (resposta.status === 204) return null; // DELETE devolve "sem conteúdo"
+  return resposta.json();
+}
+
+// Cada função abaixo = um endpoint do back.
+const api = {
+  buscarAlimentos: (nome, idioma, signal) =>
+    chamarApi(`/alimentos/buscar?nome=${encodeURIComponent(nome)}&idioma=${idioma}`, { signal }),
+  detalharUsda:    (fdcId) => chamarApi(`/alimentos/usda/${fdcId}`),
+  salvarAlimento:  (fdcId) => chamarApi(`/alimentos/salvar/${fdcId}`, { method: "POST" }),
+  registrarConsumo:(corpo) => chamarApi("/consumos/registrar", { method: "POST", body: JSON.stringify(corpo) }),
+  listarConsumos:  () => chamarApi("/consumos/listar-tudo"),
+  resumoDoDia:     (data) => chamarApi(`/consumos/resumo-diario?data=${data}`),
+  apagarConsumo:   (id) => chamarApi(`/consumos/${id}`, { method: "DELETE" })
+};
+
+/* ---------- Etapa 1: busca ---------- */
+
+async function pesquisar(texto) {
+  if (estado.controleBusca) estado.controleBusca.abort();
+  estado.controleBusca = new AbortController();
+  $("search-results").replaceChildren();
+
+  if (texto.length < MINIMO_CARACTERES) {
+    $("results-count").textContent = "";
+    mostrarStatusBusca(`<strong>Continue digitando</strong><span>Informe pelo menos ${MINIMO_CARACTERES} caracteres.</span>`);
+    return;
+  }
+
+  mostrarStatusBusca('<span class="spinner"></span><span>Pesquisando alimentos...</span>');
+  try {
+    estado.resultadosBusca = await api.buscarAlimentos(
+      texto,
+      $("search-language").value,
+      estado.controleBusca.signal
+    );
+    mostrarResultados();
+  } catch (erro) {
+    if (erro.name === "AbortError") return; // busca antiga cancelada: normal
+    mostrarStatusBusca("<strong>Não foi possível pesquisar</strong><span>Verifique se o backend está ativo.</span>");
+    mostrarMensagem(erro.message, true);
+  }
+}
+
+// Ajusta placeholder e aviso conforme o idioma escolhido
+function atualizarIdiomaBusca() {
+  const emIngles = $("search-language").value === "EN";
+  $("food-search").placeholder = emIngles
+    ? "Type the food name in English (e.g. rice)"
+    : "Ex.: arroz, banana, frango...";
+  $("search-hint").hidden = emIngles; // o aviso só faz sentido no modo português
+}
+
+function mostrarResultados() {
+  const lista = $("search-results");
+  lista.replaceChildren();
+  $("results-count").textContent = `${estado.resultadosBusca.length} encontrado(s)`;
+
+  if (estado.resultadosBusca.length === 0) {
+    mostrarStatusBusca("<strong>Nenhum alimento encontrado</strong><span>Tente outro termo.</span>");
+    return;
+  }
+  $("search-state").hidden = true;
+
+  estado.resultadosBusca.forEach((alimento) => {
+    const botao = document.createElement("button");
+    botao.type = "button";
+    botao.className = "food-item";
+
+    const nome = document.createElement("span");
+    nome.className = "food-item-name";
+    nome.textContent = alimento.nome;              // campo do DadosResultadoUSDA
+    const codigo = document.createElement("span");
+    codigo.className = "food-item-code";
+    codigo.textContent = `FDC ID: ${alimento.fdcId}`;
+    const info = document.createElement("span");
+    info.append(nome, codigo);
+
+    const kcal = document.createElement("span");
+    kcal.className = "food-item-kcal";
+    const calorias = alimento.informacaoNutricional?.calorias;
+    kcal.textContent = calorias ? `${formatar(calorias)} kcal / 100 g` : "Ver detalhes";
+
+    botao.append(info, kcal);
+    botao.addEventListener("click", () => escolherAlimento(alimento));
+    lista.append(botao);
+  });
+}
+
+/* ---------- Etapa 2: porção ---------- */
+
+// 'medium (7" to 7-7/8" long)' -> 'médio'. Se não estiver no mapa, mostra o texto original.
+function nomeDaPorcao(descricao) {
+  const nome = descricao.split("(")[0].trim().toLowerCase();
+  return TAMANHOS[nome] ?? descricao;
+}
+
+// acha a porção do alimento escolhido pela descrição (é o valor que o select guarda)
+function acharPorcao(descricao) {
+  return (estado.alimentoEscolhido?.porcoes || []).find((p) => p.descricao === descricao) || null;
+}
+
+// converte o que o usuário digitou para gramas, seja "g" ou uma porção
+function gramasDaPorcao() {
+  const quantidade = Number($("portion-quantity").value);
+  const escolha = $("portion-unit").value;
+
+  if (escolha === UNIDADE_GRAMA) return quantidade;
+
+  const porcao = acharPorcao(escolha);
+  // gramas de UMA unidade = pesoGrama / quantidade (a mesma conta do back)
+  return porcao ? quantidade * (porcao.pesoGrama / porcao.quantidade) : 0;
+}
+
+// monta o select: gramas sempre + uma opção por porção que veio da USDA
+function atualizarOpcoesDeUnidade() {
+  const seletor = $("portion-unit");
+  seletor.replaceChildren(new Option("gramas (g)", UNIDADE_GRAMA));
+
+  (estado.alimentoEscolhido?.porcoes || []).forEach((p) => {
+    if (!(p.pesoGrama > 0 && p.quantidade > 0)) return;
+    const gramas = Math.round(p.pesoGrama / p.quantidade);
+    // new Option(texto mostrado, valor enviado): o valor é a descrição original em inglês
+    seletor.add(new Option(`${nomeDaPorcao(p.descricao)} (~${gramas} g)`, p.descricao));
+  });
+}
+
+async function escolherAlimento(alimento) {
+  estado.alimentoEscolhido = alimento;
+  // NOVO: volta o seletor para gramas a cada alimento novo
+  $("portion-unit").replaceChildren(new Option("gramas (g)", UNIDADE_GRAMA));
+  $("no-selection").hidden = true;
+  $("selected-food").hidden = false;
+  $("selected-name").textContent = alimento.nome;
+  $("selected-description").textContent = `Código USDA: ${alimento.fdcId}`;
+  atualizarOpcoesDeUnidade(); // NOVO: a busca já pode ter trazido porções
+  atualizarPreviaPorcao();
+  mostrarMensagem("", false, "portion-message");
+
+  try {
+    // Busca os detalhes completos (inclui porções) e mescla com o que já temos.
+    const detalhe = await api.detalharUsda(alimento.fdcId);
+    estado.alimentoEscolhido = { ...alimento, ...detalhe };
+    atualizarOpcoesDeUnidade(); // NOVO
+    atualizarPreviaPorcao();
+  } catch (_) {
+    mostrarMensagem("Não consegui carregar os detalhes completos.", true, "portion-message");
+  }
+}
+
+function atualizarPreviaPorcao() {
+  if (!estado.alimentoEscolhido) return;
+  const gramas = gramasDaPorcao(); // ALTERADO: antes era Number($("portion-quantity").value)
+  const fator = gramas > 0 ? gramas / 100 : 0; // valores da USDA são por 100 g
+  const n = estado.alimentoEscolhido.informacaoNutricional || {};
+
+  $("portion-calories").innerHTML = `${formatar((n.calorias || 0) * fator)} <small>kcal</small>`;
+  $("portion-protein").textContent = `Proteínas: ${formatar((n.proteinas || 0) * fator)} g`;
+  $("portion-carbs").textContent = `Carboidratos: ${formatar((n.carboidratos || 0) * fator)} g`;
+  $("portion-fat").textContent = `Gorduras: ${formatar((n.gorduras || 0) * fator)} g`;
+}
+
+function limparSelecao() {
+  estado.alimentoEscolhido = null;
+  $("selected-food").hidden = true;
+  $("no-selection").hidden = false;
+  $("portion-quantity").value = "100";
+  $("portion-unit").replaceChildren(new Option("gramas (g)", UNIDADE_GRAMA)); // NOVO
+}
+
+async function adicionarAoDiario(evento) {
+  evento.preventDefault(); // impede o formulário de recarregar a página
+  const alimento = estado.alimentoEscolhido;
+  const quantidade = Number($("portion-quantity").value);
+  if (!alimento || !(quantidade > 0)) {
+    mostrarMensagem("Escolha um alimento e informe uma quantidade válida.", true, "portion-message");
+    return;
+  }
+
+  const botao = $("add-food-button");
+  botao.disabled = true;
+  try {
+    // 1) salva o alimento no seu banco (devolve DadosDetalhamentoAlimento com o id LOCAL)
+    const salvo = await api.salvarAlimento(alimento.fdcId);
+    // 2) registra o consumo usando esse id local, não o fdcId
+    // ALTERADO: manda a unidade escolhida ("g" ou "unidade") em vez da constante fixa
+    await api.registrarConsumo({
+      alimentoId: salvo.id,
+      quantidade,
+      unidadeTipo: $("portion-unit").value
+    });
+
+    mostrarMensagem("Alimento adicionado ao seu diário!", false, "portion-message");
+    limparSelecao();
+    $("food-search").value = "";
+    $("clear-search").hidden = true;
+    $("search-results").replaceChildren();
+    mostrarStatusBusca("<strong>Alimento registrado</strong><span>Você pode pesquisar outro.</span>");
+    await carregarDiario();
+  } catch (erro) {
+    mostrarMensagem(`Não foi possível registrar: ${erro.message}`, true, "portion-message");
+  } finally {
+    botao.disabled = false;
+  }
+}
+
+/* ---------- Diário ---------- */
+
+async function carregarDiario() {
+  $("diary-loading").hidden = false;
+  $("diary-error").hidden = true;
+  try {
+    estado.registros = await api.listarConsumos();
+    mostrarDiario();
+    await carregarResumoDoDia();
+  } catch (erro) {
+    $("diary-loading").hidden = true;
+    $("diary-error").hidden = false;
+    mostrarMensagem(`Erro ao carregar o diário: ${erro.message}`, true);
+  }
+}
+
+// Totais do dia calculados pelo BACK (DadosResumoNutricional)
+async function carregarResumoDoDia() {
+  try {
+    const resumo = await api.resumoDoDia($("diary-date").value);
+    $("daily-calories").textContent = formatar(resumo.calorias);
+    $("diary-total-calories").innerHTML = `${formatar(resumo.calorias)} <small>kcal</small>`;
+    $("diary-macros").textContent =
+    `Prot ${formatar(resumo.proteinas)} g · Carb ${formatar(resumo.carboidratos)} g · ` +
+    `Gord ${formatar(resumo.gorduras)} g · Fibras ${formatar(resumo.fibras)} g · ` +
+    `Sódio ${formatar(resumo.sodio)} mg`;
+  } catch (_) { /* a lista continua funcionando */ }
+}
+
+function mostrarDiario() {
+  $("diary-loading").hidden = true;
+  const dia = $("diary-date").value;
+  // "data" vem como "2026-11-02T14:30:00": os 10 primeiros caracteres são a data
+  const doDia = estado.registros.filter((r) => String(r.data).slice(0, 10) === dia);
+
+  $("food-count").textContent = doDia.length;
+  $("diary-empty").hidden = doDia.length > 0;
+  $("summary-date").textContent = `Resumo de ${dia.split("-").reverse().join("/")}`;
+  $("diary-list").replaceChildren();
+
+  doDia.forEach((registro) => $("diary-list").append(criarLinhaDiario(registro)));
+}
+
+// Monta a linha de nutrientes; pula os que vieram null (nem todo alimento tem todos)
+function criarNutrientes(info) {
+  const itens = [
+    ["Prot", info?.proteinas, "g"],
+    ["Carb", info?.carboidratos, "g"],
+    ["Gord", info?.gorduras, "g"],
+    ["Fibras", info?.fibras, "g"],
+    ["Sódio", info?.sodio, "mg"]
+  ];
+  const caixa = document.createElement("div");
+  caixa.className = "diary-item-nutrients";
+
+  itens.forEach(([rotulo, valor, unidade]) => {
+    if (valor == null) return;
+    const chip = document.createElement("span");
+    chip.textContent = `${rotulo} ${formatar(valor)} ${unidade}`;
+    caixa.append(chip);
+  });
+  return caixa;
+}
+
+function criarLinhaDiario(registro) {
+  const linha = document.createElement("article");
+  linha.className = "diary-item";
+
+  const icone = document.createElement("span");
+  icone.className = "diary-item-icon";
+  icone.textContent = "◒";
+
+  const info = document.createElement("div");
+  info.className = "diary-item-info";
+  const nome = document.createElement("strong");
+  nome.textContent = registro.nomeAlimento;
+  const detalhe = document.createElement("span");
+  detalhe.textContent = `${formatar(registro.quantidade)} ${nomeDaPorcao(registro.unidadeTipo)}`;
+  info.append(nome, detalhe, criarNutrientes(registro.informacao));
+
+  const kcal = document.createElement("strong");
+  kcal.className = "diary-item-kcal";
+  kcal.textContent = `${formatar(registro.informacao?.calorias)} kcal`;
+
+  const apagar = document.createElement("button");
+  apagar.className = "diary-item-delete";
+  apagar.type = "button";
+  apagar.textContent = "×";
+  apagar.setAttribute("aria-label", `Excluir ${registro.nomeAlimento}`);
+  apagar.addEventListener("click", () => apagarRegistro(registro.id, apagar));
+
+  linha.append(icone, info, kcal, apagar);
+  return linha;
+}
+
+async function apagarRegistro(id, botao) {
+  if (!confirm("Deseja excluir este alimento do seu diário?")) return;
+  botao.disabled = true;
+  try {
+    await api.apagarConsumo(id);
+    mostrarMensagem("Registro removido do diário.");
+    await carregarDiario();
+  } catch (erro) {
+    mostrarMensagem(`Não foi possível excluir: ${erro.message}`, true);
+    botao.disabled = false;
+  }
+}
+
+/* ---------- Eventos e inicialização ---------- */
+
+function ligarEventos() {
+  ["food-search","clear-search","search-language","switch-to-english",
+ "portion-quantity","portion-unit","portion-form","change-food",
+ "retry-diary","diary-date"].forEach((id) => {
+  if (!$(id)) console.error(`Falta no HTML o id: ${id}`);
+  });
+  $("food-search").addEventListener("input", () => {
+    const texto = $("food-search").value.trim();
+    $("clear-search").hidden = texto === "";
+    clearTimeout(estado.timerBusca); // debounce: espera parar de digitar
+    estado.timerBusca = setTimeout(() => pesquisar(texto), ESPERA_BUSCA_MS);
+  });
+
+  // Enter busca na hora, sem esperar o tempo
+  $("food-search").addEventListener("keydown", (evento) => {
+    if (evento.key === "Enter") {
+      clearTimeout(estado.timerBusca); // cancela a busca agendada para não buscar 2x
+      pesquisar($("food-search").value.trim());
+    }
+  });
+
+  $("clear-search").addEventListener("click", () => {
+    clearTimeout(estado.timerBusca);
+    $("food-search").value = "";
+    $("clear-search").hidden = true;
+    pesquisar("");
+  });
+
+  $("search-language").addEventListener("change", () => {
+    atualizarIdiomaBusca();
+    const texto = $("food-search").value.trim();
+    if (texto) pesquisar(texto);
+  });
+
+  $("switch-to-english").addEventListener("click", () => {
+    clearTimeout(estado.timerBusca);
+    $("search-language").value = "EN";
+    atualizarIdiomaBusca();
+    $("food-search").value = "";   // o termo em português não serve em inglês
+    $("clear-search").hidden = true;
+    pesquisar("");                 // limpa os resultados antigos
+    $("food-search").focus();
+  });
+
+  $("portion-quantity").addEventListener("input", atualizarPreviaPorcao);
+  $("portion-unit").addEventListener("change", atualizarPreviaPorcao); // NOVO
+  $("portion-form").addEventListener("submit", adicionarAoDiario);
+  $("change-food").addEventListener("click", () => $("food-search").focus());
+  $("retry-diary").addEventListener("click", carregarDiario);
+
+  $("diary-date").addEventListener("change", async () => {
+    mostrarDiario();
+    await carregarResumoDoDia();
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  $("diary-date").value = hojeEmTexto();
+  atualizarIdiomaBusca();
+  ligarEventos();
+  carregarDiario();
+});
