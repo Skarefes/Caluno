@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/logout.js" defer></script>
   <script src="js/app.js" defer></script>
 </head>
 <body>
@@ -19,10 +21,23 @@
         <span>caluno<span class="logo-dot">.</span></span>
       </a>
       <span class="header-tag">COMA COM CONSCIÊNCIA</span>
-      <button class="account-button" type="button" id="profile-button" title="Área do usuário" disabled>
+
+      <div>
+        <a class="account-button" href="conta.html" title="Area do usuario">
+          <span class="account-avatar" id="account-avatar">U</span>
+          <span class="account-label" id="account-label">Minha conta</span>
+        </a>
+
+        <button class="logout-button" type="button" id="logout-button">Sair</button>
+
+      </div>
+
+      <!--<button class="account-button" type="button" id="profile-button" title="Área do usuário">
         <span class="account-avatar">U</span>
-        <span class="account-label">Minha conta</span>
-      </button>
+        <span class="account-label">Minha conta></span>
+      </button>-->
+
+      
     </header>
 
     <main class="content">
@@ -171,7 +186,67 @@
           </div>
         </div>
 
-        <p id="diary-macros" class="diary-macros"></p>
+        <div class="nutrition-summary">
+          <button type="button"
+          id="nutrition-toggle"
+          class="nutrition-toggle"
+          aria-expanded="false"
+          aria-controls="nutrition-panel">
+
+          <span class="nutrition-toggle-info">
+            <strong>Resumo Nutricional</strong>
+            <small>Confira os nutrientes consumidos do dia todo</small>
+          </span>
+
+          <span class="nutrition-toggle-action">
+            <span id="nutrition-toggle-text">Ver resumo nutricional</span>
+            <span id="nutrition-toggle-icon">⌄</span>
+          </span>
+          </button>
+
+          <div id="nutrition-panel" class="nutrition-panel" hidden>
+            <div class="nutrition-grid">
+
+              <article class="nutrition-card nutrition-card--calories">
+                <span class="nutrition-card-label"> CALORIAS</span>
+                <strong id="nutrition-calories">—</strong>
+                <small>kcal</small>
+              </article>
+
+              <article class="nutrition-card">
+                <span class="nutrition-card-label">CARBOIDRATOS</span>
+                <strong id="nutrition-carbs">—</strong>
+                <small>g</small>
+            </article>
+
+            <article class="nutrition-card">
+                <span class="nutrition-card-label">PROTEÍNAS</span>
+                <strong id="nutrition-protein">—</strong>
+                <small>g</small>
+            </article>
+
+            <article class="nutrition-card">
+                <span class="nutrition-card-label">GORDURAS</span>
+                <strong id="nutrition-fat">—</strong>
+                <small>g</small>
+            </article>
+
+            <article class="nutrition-card">
+                <span class="nutrition-card-label">FIBRAS</span>
+                <strong id="nutrition-fiber">—</strong>
+                <small>g</small>
+            </article>
+
+            <article class="nutrition-card">
+                <span class="nutrition-card-label">SÓDIO</span>
+                <strong id="nutrition-sodium">—</strong>
+                <small>mg</small>
+            </article>
+
+            </div>
+            
+          </div>
+        </div>
 
         <div id="diary-loading" class="status-box status-box--small">
           <span class="spinner" aria-hidden="true"></span>

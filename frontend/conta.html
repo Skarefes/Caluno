@@ -1,0 +1,141 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#214c3b">
+
+    <title>Caluno — Minha conta</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/conta.css">
+
+    <script src="js/api.js" defer></script>
+    <script src="js/conta.js" defer></script>
+</head>
+
+<body>
+    <div class="page">
+
+        <header class="header">
+            <a class="logo" href="index.html" aria-label="Voltar ao Caluno">
+                <span class="logo-icon" aria-hidden="true">✳</span>
+                <span>caluno<span class="logo-dot">.</span></span>
+            </a>
+
+            <span class="header-tag">MINHA CONTA</span>
+
+            <a class="account-back" href="index.html">
+                Voltar ao diário
+            </a>
+        </header>
+
+        <main class="account-content">
+
+            <section class="account-welcome">
+                <p class="welcome-label">GERENCIAMENTO</p>
+                <h1>Minha conta</h1>
+                <p>Gerencie suas informações e preferências no Caluno.</p>
+            </section>
+
+            <section class="account-card">
+
+                <div class="account-section-title">
+                    <div>
+                        <p class="card-step">SEUS DADOS</p>
+                        <h2>Informações da conta</h2>
+                    </div>
+                    <span class="account-section-icon">♙</span>
+                </div>
+
+                <div class="account-user">
+                    <div class="account-user-avatar" id="account-avatar">U</div>
+
+                    <div>
+                        <span class="account-info-label">NOME DE USUÁRIO</span>
+                        <strong id="account-username">Carregando...</strong>
+                    </div>
+                </div>
+
+            </section>
+
+            <section class="account-card account-danger">
+
+                <div class="account-section-title">
+                    <div>
+                        <p class="card-step">ZONA DE PERIGO</p>
+                        <h2>Excluir minha conta</h2>
+                    </div>
+                    <span class="account-section-icon danger-icon">!</span>
+                </div>
+
+                <p class="account-description">
+                    Se você não deseja mais utilizar o Caluno, poderá excluir
+                    sua conta permanentemente.
+                </p>
+
+                <div class="danger-warning">
+                    <strong> Atenção: essa ação é permanente.</strong>
+                    <p>
+                        Seus dados e registros associados à conta poderão ser
+                        removidos. Depois da exclusão, não será possível
+                        recuperar sua conta.
+                    </p>
+                </div>
+
+                <button type="button" class="delete-account-button" id="open-delete-modal">
+                    Excluir minha conta
+                </button>
+
+            </section>
+
+            <p id="account-message" class="account-message" role="status" aria-live="polite"></p>
+
+        </main>
+
+        <!-- Modal de confirmação -->
+        <div class="modal-overlay" id="delete-modal" hidden>
+
+            <section class="delete-modal"
+                     role="dialog"
+                     aria-modal="true"
+                     aria-labelledby="modal-title"
+                     aria-describedby="modal-description">
+
+                <div class="modal-icon">!</div>
+
+                <h2 id="modal-title">Tem certeza que deseja excluir?</h2>
+
+                <p id="modal-description">
+                    Essa ação não poderá ser desfeita. Sua conta e os dados
+                    associados serão excluídos.
+                </p>
+                <p id="modal-error" class="account-message error" role="alert"></p>
+
+                <div class="modal-actions">
+                    <button type="button" class="cancel-delete-button" id="cancel-delete">
+                        Cancelar
+                    </button>
+
+                    <button type="button" class="confirm-delete-button" id="confirm-delete">
+                        Sim, excluir conta
+                    </button>
+                </div>
+
+            </section>
+
+        </div>
+
+        <footer class="footer">
+            Caluno — Cuide da sua alimentação com consciência.
+        </footer>
+
+    </div>
+</body>
+</html>
+```

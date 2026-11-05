@@ -17,7 +17,7 @@ formulario.addEventListener("submit", async (evento) => {
 
         mostrarMensagem("");
 
-        const credencial = btoa(`${nome}:${senha}`);
+        const credencial = codificarBase64UTF8(`${nome}:${senha}`);
 
         const resposta = await fetch(`${API_BASE_URL}/auth/login`, {
 
@@ -33,13 +33,13 @@ formulario.addEventListener("submit", async (evento) => {
             throw new Error("Nome de usuário ou senha incorretos.");
         }
 
+        //Esperando a resposta do backend
         const usuario = await resposta.json();
 
         // Guarda a credencial durante a sessão da aba
-        sessionStorage.setItem(
-            "calunoAuth",
-            `Basic ${credencial}`
-        );
+        sessionStorage.setItem("calunoAuth",
+            `Basic ${credencial}`);
+        sessionStorage.setItem("calunoNome", usuario.nome);
 
         // Encaminha para o diário
         window.location.href = "index.html";
@@ -58,4 +58,17 @@ function mostrarMensagem(texto, erro = false) {
 
     mensagem.classList.toggle("error", erro);
 
+}
+
+function codificarBase64UTF8(texto) {
+
+    const bytes = new TextEncoder().encode(texto);
+
+    let binario = "";
+
+    bytes.forEach(byte => {
+        binario += String.fromCharCode(byte);
+    });
+
+    return btoa(binario);
 }

@@ -1,7 +1,3 @@
-/* Caluno — front ligado ao back Spring Boot (versão organizada) */
-
-const API_BASE_URL = "http://localhost:8080";
-
 // Valores que o back compara em DadosRegistroConsumo.unidadeTipo
 const UNIDADE_GRAMA = "g";
 
@@ -12,14 +8,20 @@ const TAMANHOS = {
   "small": "pequeno",
   "medium": "médio",
   "large": "grande",
-  "extra large": "extra grande"
+  "extra large": "extra grande",
+  "serving": "porcão",
+  "strip": "pedaço",
+  "piece": "pedaço",
+  "slice": "fatia",
+  "fillet": "filé",
+  "drumstick": "coxa",
+  "thigh": "sobrecoxa",
+  "wing": "asa",
+  "unit": "unidade"
 };
 
 const ESPERA_BUSCA_MS = 800;   // tempo parado até buscar sozinho
 const MINIMO_CARACTERES = 3;   // abaixo disso não busca
-
-// PROVISÓRIO até existir a tela de login: usuário/senha de teste (HTTP Basic).
-const USUARIO_TESTE = { nome: "teste", senha: "teste123" };
 
 const $ = (id) => document.getElementById(id);
 const formatador = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
@@ -32,6 +34,19 @@ const estado = {
   timerBusca: null,
   controleBusca: null      // permite cancelar a busca anterior
 };
+
+/* ---------- Nome automatico ---------- */
+
+const nomeUsuario = sessionStorage.getItem("calunoNome");
+
+const accountLabel = document.getElementById("account-label");
+const accountAvatar = document.getElementById("account-avatar");
+
+if (nomeUsuario) {
+    accountLabel.textContent = nomeUsuario;
+    accountAvatar.textContent = nomeUsuario.charAt(0).toUpperCase();
+}
+
 
 /* ---------- Utilidades ---------- */
 
@@ -55,33 +70,6 @@ function hojeEmTexto() {
 function mostrarStatusBusca(html) {
   $("search-state").hidden = false;
   $("search-state").innerHTML = html;
-}
-
-/* ---------- Comunicação com a API ---------- */
-// Uma única função faz todo fetch. Se algo mudar (token, URL), muda só aqui.
-
-function cabecalhoAutenticacao() {
-  const credencial = btoa(`${USUARIO_TESTE.nome}:${USUARIO_TESTE.senha}`);
-  return { Authorization: `Basic ${credencial}` };
-}
-
-async function chamarApi(caminho, opcoes = {}) {
-  const resposta = await fetch(`${API_BASE_URL}${caminho}`, {
-    ...opcoes,
-    headers: {
-      "Content-Type": "application/json",
-      ...cabecalhoAutenticacao(),
-      ...(opcoes.headers || {})
-    }
-  });
-
-  if (!resposta.ok) {
-    let detalhe = "";
-    try { detalhe = (await resposta.json()).message; } catch (_) {}
-    throw new Error(detalhe || `Erro HTTP ${resposta.status}`);
-  }
-  if (resposta.status === 204) return null; // DELETE devolve "sem conteúdo"
-  return resposta.json();
 }
 
 // Cada função abaixo = um endpoint do back.
@@ -170,6 +158,14 @@ function mostrarResultados() {
 }
 
 /* ---------- Etapa 2: porção ---------- */
+
+// Quando troca a unidade, a quantidade antiga deixa de fazer sentido
+// (200 g é normal, mas 200 bananas não). Volta para um valor padrão.
+function trocarUnidade() {
+  const emGramas = $("portion-unit").value === UNIDADE_GRAMA;
+  $("portion-quantity").value = emGramas ? "100" : "1";
+  atualizarPreviaPorcao(); // recalcula as calorias com a nova quantidade
+}
 
 // 'medium (7" to 7-7/8" long)' -> 'médio'. Se não estiver no mapa, mostra o texto original.
 function nomeDaPorcao(descricao) {
@@ -302,17 +298,33 @@ async function carregarDiario() {
   }
 }
 
+//metodo que atualiza os nutrientes sem transformara valroes nulos em 0
+function atualizarNutriente(id, valor){
+  $(id).textContent = valor == null ? "—" : formatar(valor);
+}
+
 // Totais do dia calculados pelo BACK (DadosResumoNutricional)
 async function carregarResumoDoDia() {
   try {
-    const resumo = await api.resumoDoDia($("diary-date").value);
-    $("daily-calories").textContent = formatar(resumo.calorias);
-    $("diary-total-calories").innerHTML = `${formatar(resumo.calorias)} <small>kcal</small>`;
-    $("diary-macros").textContent =
-    `Prot ${formatar(resumo.proteinas)} g · Carb ${formatar(resumo.carboidratos)} g · ` +
-    `Gord ${formatar(resumo.gorduras)} g · Fibras ${formatar(resumo.fibras)} g · ` +
-    `Sódio ${formatar(resumo.sodio)} mg`;
-  } catch (_) { /* a lista continua funcionando */ }
+        const resumo = await api.resumoDoDia($("diary-date").value);
+
+        // Atualiza o resumo superior que já existia
+        $("daily-calories").textContent = formatar(resumo.calorias);
+
+        $("diary-total-calories").innerHTML =
+            `${formatar(resumo.calorias)} <small>kcal</small>`;
+
+        // Atualiza os seis cartões do painel expansível
+        atualizarNutriente("nutrition-calories", resumo.calorias);
+        atualizarNutriente("nutrition-carbs", resumo.carboidratos);
+        atualizarNutriente("nutrition-protein", resumo.proteinas);
+        atualizarNutriente("nutrition-fat", resumo.gorduras);
+        atualizarNutriente("nutrition-fiber", resumo.fibras);
+        atualizarNutriente("nutrition-sodium", resumo.sodio);
+
+    } catch (erro) {
+        console.error("Erro ao carregar resumo nutricional:", erro);
+    }
 }
 
 function mostrarDiario() {
@@ -394,7 +406,7 @@ async function apagarRegistro(id, botao) {
   }
 }
 
-/* ---------- Eventos e inicialização ---------- */
+/* ---------- Eventos e inicialização ------- */
 
 function ligarEventos() {
   ["food-search","clear-search","search-language","switch-to-english",
@@ -441,10 +453,27 @@ function ligarEventos() {
   });
 
   $("portion-quantity").addEventListener("input", atualizarPreviaPorcao);
-  $("portion-unit").addEventListener("change", atualizarPreviaPorcao); // NOVO
+  $("portion-unit").addEventListener("change", trocarUnidade); // NOVO
   $("portion-form").addEventListener("submit", adicionarAoDiario);
   $("change-food").addEventListener("click", () => $("food-search").focus());
   $("retry-diary").addEventListener("click", carregarDiario);
+
+  
+  // Abre e recolhe o resumo nutricional
+  $("nutrition-toggle").addEventListener("click", () => {
+      const botao = $("nutrition-toggle");
+      const painel = $("nutrition-panel");
+
+      const aberto = botao.getAttribute("aria-expanded") === "true";
+
+      botao.setAttribute("aria-expanded", String(!aberto));
+      painel.hidden = aberto;
+
+      $("nutrition-toggle-text").textContent = aberto
+          ? "Ver resumo nutricional"
+          : "Recolher resumo nutricional";
+  });
+
 
   $("diary-date").addEventListener("change", async () => {
     mostrarDiario();
@@ -453,6 +482,19 @@ function ligarEventos() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+
+  if (!sessionStorage.getItem("calunoAuth")) {
+        window.location.replace("login.html");
+        return;
+  }
+
+  const nomeUsuario = sessionStorage.getItem("calunoNome");
+
+  if (nomeUsuario) {
+      $("account-label").textContent = nomeUsuario;
+      $("account-avatar").textContent = nomeUsuario.charAt(0).toUpperCase();
+  }
+
   $("diary-date").value = hojeEmTexto();
   atualizarIdiomaBusca();
   ligarEventos();
