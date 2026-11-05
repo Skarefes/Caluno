@@ -139,3 +139,32 @@
         font-size: 28px;
     }
 }
+.beta-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px 14px;
+    border: 1px solid #f0d9cf;
+    border-radius: 12px;
+    background: #fff8f4;
+}
+
+.beta-badge {
+    flex: 0 0 auto;
+    padding: 3px 8px;
+    border-radius: 30px;
+    color: #b66046;
+    background: var(--accent-soft);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.beta-notice p {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
