@@ -1,6 +1,3 @@
-
-const API_BASE_URL = "http://localhost:8080";
-
 // Capturamos os elementos do HTML
 const formulario = document.getElementById("cadastro-form");
 const campoNome = document.getElementById("nome");

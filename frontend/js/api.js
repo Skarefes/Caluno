@@ -1,6 +1,3 @@
-
-const API_BASE_URL = "http://localhost:8080";
-
 async function chamarApi(caminho, opcoes = {}) {
 
     const credencial = sessionStorage.getItem("calunoAuth");

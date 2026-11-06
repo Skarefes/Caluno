@@ -1,6 +1,3 @@
-
-const API_BASE_URL = "http://localhost:8080";
-
 const formulario = document.getElementById("login-form");
 const campoNome = document.getElementById("nome");
 const campoSenha = document.getElementById("senha");
