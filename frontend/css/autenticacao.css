@@ -168,3 +168,22 @@
     font-size: 12px;
     line-height: 1.6;
 }
+
+/* Aviso de "carregando" do login */
+.auth-loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    border: 1px solid #c8d9c9;
+    border-radius: 12px;
+    background: var(--green-50);
+}
+
+.auth-loading p {
+    margin: 0;
+    color: var(--green-800);
+    font-size: 12px;
+    line-height: 1.5;
+}
