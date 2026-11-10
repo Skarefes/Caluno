@@ -13,9 +13,15 @@ O projeto busca tornar o acompanhamento da alimentação mais simples e acessív
 * Cadastro e consulta de alimentos;
 * Consulta de informações nutricionais;
 * Registro do consumo de alimentos;
-* Cálculo proporcional dos nutrientes de acordo com a quantidade consumida;
 * Integração com dados nutricionais da **USDA FoodData Central**;
 * Organização das informações nutricionais em uma estrutura própria da aplicação.
+* Desenvolvimento de API REST utilizando Java e Spring Boot.
+* Cadastro e gerenciamento de usuários.
+* Persistência de dados utilizando PostgreSQL e mapeamento objeto-relacional com JPA/Hibernate.
+* Gerenciamento e versionamento do banco de dados com Flyway.
+* Cálculo e apresentação de informações nutricionais
+* Desenvolvimento de interface web utilizando HTML, CSS e JavaScript, integrada ao backend.
+* Tradução de ingles para portugues e vice versa usando Mymemory
 
 Entre os nutrientes trabalhados estão:
 
@@ -35,6 +41,7 @@ Entre os nutrientes trabalhados estão:
 * Flyway
 * REST API
 * USDA FoodData Central API
+* MyMemory
 
 ## Objetivo acadêmico
 
@@ -48,12 +55,11 @@ O projeto está em desenvolvimento e novas funcionalidades poderão ser adiciona
 
 Entre as possibilidades de evolução estão:
 
-* Sistema de usuários;
-* Histórico de consumo;
-* Resumo diário de nutrientes;
+
 * Metas nutricionais;
-* Interface web/mobile;
+* Interface voltado para mobile
 * Melhorias na busca e cadastro de alimentos.
+* Melhorias na tradução
 
 ## Licensa
 Departamento de Agricultura dos EUA, Serviço de Pesquisa Agrícola. FoodData Central, 2019. fdc.nal.usda.gov.
