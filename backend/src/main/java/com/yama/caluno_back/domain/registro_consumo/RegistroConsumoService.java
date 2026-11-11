@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,6 +27,7 @@ public class RegistroConsumoService {
     // (RACC = porção de referência regulatória, undetermined = sem medida definida)
     //private static final Set<String> NAO_UNIDADE = Set.of("racc", "undetermined");
 
+    private static final ZoneId FUSO =  ZoneId.of("America/Sao_Paulo");
     private final AlimentoRepository alimentoRepository;
     private final RegistroConsumoRepository registroConsumoRepository;
     private final UsuarioRepository usuarioRepository;
@@ -128,7 +130,8 @@ public class RegistroConsumoService {
             unidadeTipo = porcaoAlimento.getDescricao();
         }
         //Caso ele não envie o grama, ele joga na regra de 3
-        InformacaoNutricional calculado = calcularConsumo(alimento, pesoGrama);
+        InformacaoNutricional calculado = calcularConsumo(alimento,
+                pesoGrama);
 
         var registro = new RegistroConsumo(
                 alimento,
@@ -136,7 +139,7 @@ public class RegistroConsumoService {
                 unidadeTipo,
                 pesoGrama,
                 calculado, //Aqui aonde entraria os nutrientes
-                LocalDateTime.now(),
+                LocalDateTime.now(FUSO),
                 usuario
         );
         registroConsumoRepository.save(registro);
