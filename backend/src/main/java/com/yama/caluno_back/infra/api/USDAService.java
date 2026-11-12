@@ -27,7 +27,7 @@ public class USDAService {
 
     //Descricoes que nao sao unidades, medidas de volume e porcao regulatorios que vem do USDA e por enquanto nao tem uso
     //Se aparecer outra que é indesejado, só colocar no NAO_UNIDADE
-    private static final List<String> NAO_UNIDADE = List.of("cup", "tbsp", "tsp", "fl oz", "nlea", "racc");
+    private static final List<String> NAO_UNIDADE = List.of("nlea", "racc");
 
     //variaveis que terão as variaveis de ambiente do properties
     private final String apiUrl;

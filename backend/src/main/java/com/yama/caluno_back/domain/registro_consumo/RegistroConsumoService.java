@@ -16,8 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,12 +31,23 @@ public class RegistroConsumoService {
     private final RegistroConsumoRepository registroConsumoRepository;
     private final UsuarioRepository usuarioRepository;
 
+    // ml em cada unidade de volume (a USDA usa fl oz, cup...; o usuário usa ml e l)
+    private static final Map<String, Double> ML_POR_UNIDADE = Map.of(
+            "ml", 1.0,
+            "l", 1000.0,
+            "fl oz", 29.5735,
+            "cup", 236.588,
+            "tbsp", 14.7868,
+            "tsp", 4.92892
+    );
+    private static final Set<String> VOLUME_USUARIO = Set.of("ml", "l");
+
+
     public RegistroConsumoService(AlimentoRepository alimentoRepository, RegistroConsumoRepository registroConsumoRepository, UsuarioRepository usuarioRepository) {
         this.alimentoRepository = alimentoRepository;
         this.registroConsumoRepository = registroConsumoRepository;
         this.usuarioRepository = usuarioRepository;
     }
-
 
     //Função que calcula o consumo de um alimento listado, atravez dos gramas, usando regra de 3, e uma função que multiplique o valor
     public InformacaoNutricional calcularConsumo(Alimento alimento, Double pesoGrama) {
@@ -118,14 +128,19 @@ public class RegistroConsumoService {
         Double pesoGrama;
         String unidadeTipo;
 
+        String tipo = dadosRegistroConsumo.unidadeTipo();
+
         //Sem unidade ou "g" a quantidade ja estará em grama para fascilitar
-        if (dadosRegistroConsumo.unidadeTipo() == null || dadosRegistroConsumo.unidadeTipo().equalsIgnoreCase("g")){
+        if (tipo == null || tipo.equalsIgnoreCase("g")){
             // Caso usuario informou direto em gramas
             pesoGrama = dadosRegistroConsumo.quantidade();
             unidadeTipo = "g";
+        } else if (VOLUME_USUARIO.contains(tipo.toLowerCase())) {
+            pesoGrama = converterVolumeParaGrama(dadosRegistroConsumo.quantidade(), tipo, alimento);
+            unidadeTipo = tipo.toLowerCase();
         } else {
             //vai ter uma unidade generica para o usuario entender, ou o nome da porsao USDA ( entrando como egg, Banana)
-            PorcaoAlimento porcaoAlimento = escolherPorcao(alimento, dadosRegistroConsumo.unidadeTipo());
+            PorcaoAlimento porcaoAlimento = escolherPorcao(alimento, tipo);
             pesoGrama = converterParaGrama(dadosRegistroConsumo.quantidade(), porcaoAlimento);
             unidadeTipo = porcaoAlimento.getDescricao();
         }
@@ -232,5 +247,31 @@ public class RegistroConsumoService {
     //Metodo auxiliar que converte um valor null para 0, permitindo somas
     private double valorOuZero(Double valor){
         return valor != null ? valor : 0.0;
+    }
+
+    // Descobre g/ml usando uma porção em volume que a própria USDA cadastrou
+    private Optional<Double> densidadeGramaPorMl(Alimento alimento) {
+        return alimento.getPorcoes().stream()
+                .filter(p -> p.getPesoGrama() != null && p.getPesoGrama() > 0
+                        && p.getQuantidade() != null && p.getQuantidade() > 0
+                        && p.getDescricao() != null)
+                .map(p -> {
+                    String nome = p.getDescricao().split("\\(")[0].trim().toLowerCase();
+                    Double mlPorUnidade = ML_POR_UNIDADE.get(nome);
+                    return mlPorUnidade == null ? null
+                            : p.getPesoGrama() / (p.getQuantidade() * mlPorUnidade);
+                })
+                .filter(Objects::nonNull)
+                .findFirst();
+    }
+
+    public Double converterVolumeParaGrama(Double quantidade, String unidade, Alimento alimento) {
+        if (quantidade == null || quantidade <= 0) {
+            throw new IllegalArgumentException("Quantidade deve ser maior que zero");
+        }
+        double densidade = densidadeGramaPorMl(alimento)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Este alimento não tem medida de volume na USDA. Use gramas."));
+        return quantidade * ML_POR_UNIDADE.get(unidade.toLowerCase()) * densidade;
     }
 }
