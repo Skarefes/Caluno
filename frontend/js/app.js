@@ -1,5 +1,7 @@
 // Valores que o back compara em DadosRegistroConsumo.unidadeTipo
 const UNIDADE_GRAMA = "g";
+const ML_POR_UNIDADE = { "ml": 1, "l": 1000, "fl oz": 29.5735, "cup": 236.588, "tbsp": 14.7868, "tsp": 4.92892 };
+const UNIDADES_VOLUME = new Set(["ml", "l"]);
 
 // Só tradução do que aparece na tela. O valor enviado ao back continua o original em inglês.
 // Apareceu uma porção nova em inglês? É só adicionar uma linha aqui.
@@ -17,7 +19,11 @@ const TAMANHOS = {
   "drumstick": "coxa",
   "thigh": "sobrecoxa",
   "wing": "asa",
-  "unit": "unidade"
+  "unit": "unidade",
+  "l":"L",
+  "can or bottle": "lata ou garrafa",
+  "bottle": "garrafa",
+  "can": "lata"
 };
 
 const ESPERA_BUSCA_MS = 800;   // tempo parado até buscar sozinho
@@ -161,16 +167,32 @@ function mostrarResultados() {
 
 // Quando troca a unidade, a quantidade antiga deixa de fazer sentido
 // (200 g é normal, mas 200 bananas não). Volta para um valor padrão.
+
 function trocarUnidade() {
-  const emGramas = $("portion-unit").value === UNIDADE_GRAMA;
-  $("portion-quantity").value = emGramas ? "100" : "1";
-  atualizarPreviaPorcao(); // recalcula as calorias com a nova quantidade
+  const unidade = $("portion-unit").value;
+  $("portion-quantity").value = (unidade === UNIDADE_GRAMA || unidade === "ml") ? "100" : "1";
+  atualizarPreviaPorcao(); // recalcula as calorias ou ml com a nova quantidade
 }
 
 // 'medium (7" to 7-7/8" long)' -> 'médio'. Se não estiver no mapa, mostra o texto original.
 function nomeDaPorcao(descricao) {
   const nome = descricao.split("(")[0].trim().toLowerCase();
   return TAMANHOS[nome] ?? descricao;
+}
+
+// 'medium (7" ...)' -> 'medium'
+function nomeBase(descricao) {
+  return descricao.split("(")[0].trim().toLowerCase();
+}
+
+// g/ml calculado a partir de uma porção em volume da USDA, ou null se não houver
+function densidadeDoAlimento() {
+  for (const p of estado.alimentoEscolhido?.porcoes || []) {
+    if (!(p.pesoGrama > 0 && p.quantidade > 0)) continue;
+    const mlPorUnidade = ML_POR_UNIDADE[nomeBase(p.descricao)];
+    if (mlPorUnidade) return p.pesoGrama / (p.quantidade * mlPorUnidade);
+  }
+  return null;
 }
 
 // acha a porção do alimento escolhido pela descrição (é o valor que o select guarda)
@@ -185,6 +207,11 @@ function gramasDaPorcao() {
 
   if (escolha === UNIDADE_GRAMA) return quantidade;
 
+  if (UNIDADES_VOLUME.has(escolha)){
+    const densidade = densidadeDoAlimento();
+    return densidade?quantidade * ML_POR_UNIDADE[escolha] * densidade : 0;
+  }
+
   const porcao = acharPorcao(escolha);
   // gramas de UMA unidade = pesoGrama / quantidade (a mesma conta do back)
   return porcao ? quantidade * (porcao.pesoGrama / porcao.quantidade) : 0;
@@ -195,10 +222,17 @@ function atualizarOpcoesDeUnidade() {
   const seletor = $("portion-unit");
   seletor.replaceChildren(new Option("gramas (g)", UNIDADE_GRAMA));
 
+  // ml e L só aparecem se a USDA deu uma medida de volume para converter
+  if (densidadeDoAlimento()) {
+    seletor.add(new Option("mililitros (ml)", "ml"));
+    seletor.add(new Option("litros (L)", "l"));
+  }
+
   (estado.alimentoEscolhido?.porcoes || []).forEach((p) => {
     if (!(p.pesoGrama > 0 && p.quantidade > 0)) return;
+    // fl oz, cup etc. servem só para calcular a densidade, não viram opção
+    if (ML_POR_UNIDADE[nomeBase(p.descricao)]) return;
     const gramas = Math.round(p.pesoGrama / p.quantidade);
-    // new Option(texto mostrado, valor enviado): o valor é a descrição original em inglês
     seletor.add(new Option(`${nomeDaPorcao(p.descricao)} (~${gramas} g)`, p.descricao));
   });
 }
